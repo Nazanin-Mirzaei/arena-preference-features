@@ -23,7 +23,7 @@ def _is_nan(value: Any) -> bool:
 
 def detectTables(text: Any) -> bool:
 	"""
-	Detect table-like structures: Markdown, HTML, or multi-row TSVs.
+	Detect table-like structures: Markdown and HTML.
 	"""
 	if _is_nan(text):
 		return False
