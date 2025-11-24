@@ -1,8 +1,10 @@
 """
 Robust language detection utility.
 
-This module provides `detectLanguage` to detect the primary language of a text
-and `detectMultiLanguage` to detect if a text contains multiple languages.
+This module provides `detectLanguage` to detect the primary language of a text,
+`detectMultiLanguage` with configurable chunking controls, and convenience
+wrappers (`detectResponseLanguage` / `detectPromptLanguage`) that bake in
+recommended defaults for long responses vs. short prompts.
 """
 
 from typing import Any, Dict, List, Optional, Tuple
@@ -114,12 +116,19 @@ def detectLanguage(text: Any) -> str:
     return 'unknown'
 
 
-def detectMultiLanguage(text: Any) -> Dict[str, Any]:
+def detectMultiLanguage(
+    text: Any,
+    *,
+    chunk_size: int = 200,
+    overlap: int = 50
+) -> Dict[str, Any]:
     """
     Detect if a text contains multiple languages.
     
     Args:
         text: Input text to analyze
+        chunk_size: Number of words per chunk for multi-language detection
+        overlap: Word overlap between consecutive chunks
         
     Returns:
         Dictionary with:
@@ -174,7 +183,7 @@ def detectMultiLanguage(text: Any) -> Dict[str, Any]:
         }
     
     # Split text into chunks
-    chunks = _get_text_chunks(cleaned, chunk_size=200, overlap=50)
+    chunks = _get_text_chunks(cleaned, chunk_size=chunk_size, overlap=overlap)
     
     if len(chunks) < 2:
         # Too short for multi-language detection, use single detection
@@ -247,5 +256,42 @@ def detectMultiLanguage(text: Any) -> Dict[str, Any]:
     }
 
 
-__all__ = ["detectLanguage", "detectMultiLanguage"]
+def detectResponseLanguage(
+    text: Any,
+    *,
+    chunk_size: int = 300,
+    overlap: int = 100
+) -> Dict[str, Any]:
+    """
+    Convenience wrapper using response-tuned chunking defaults.
+    """
+    return detectMultiLanguage(
+        text,
+        chunk_size=chunk_size,
+        overlap=overlap
+    )
+
+
+def detectPromptLanguage(
+    text: Any,
+    *,
+    chunk_size: int = 50,
+    overlap: int = 15
+) -> Dict[str, Any]:
+    """
+    Convenience wrapper using user prompt chunking defaults.
+    """
+    return detectMultiLanguage(
+        text,
+        chunk_size=chunk_size,
+        overlap=overlap
+    )
+
+
+__all__ = [
+    "detectLanguage",
+    "detectMultiLanguage",
+    "detectResponseLanguage",
+    "detectPromptLanguage",
+]
 
