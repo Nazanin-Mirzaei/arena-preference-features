@@ -1,5 +1,5 @@
 # Unified Feature Extraction Module – Final Version (6 Features)  
-LLM Comparative Evaluation Framework –
+LLM Comparative Evaluation Framework 
 
 Supervisor Instruction:  
 "All groups must use a single shared feature module and clearly document what has been done."
