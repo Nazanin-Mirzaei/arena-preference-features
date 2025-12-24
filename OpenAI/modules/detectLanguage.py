@@ -35,12 +35,24 @@ def _is_nan(value: Any) -> bool:
 def _clean_text(text: str) -> str:
     """
     Clean text for better language detection by removing code blocks,
-    URLs, and excessive whitespace.
+    LaTeX/math expressions, URLs, and excessive whitespace.
     """
     # Remove code blocks (markdown and HTML)
     text = re.sub(r'```[\s\S]*?```', ' ', text)
     text = re.sub(r'`[^`]+`', ' ', text)
     text = re.sub(r'<code>[\s\S]*?</code>', ' ', text)
+
+    # Remove LaTeX/math expressions
+    # Inline math: $...$
+    text = re.sub(r'\$(?:\\.|[^\$\\])+\$', ' ', text)
+    # Display math: $$...$$
+    text = re.sub(r'\$\$(?:\\.|[^\$\\])+\$\$', ' ', text)
+    # \[ ... \]
+    text = re.sub(r'\\\[(?:.|\n)*?\\\]', ' ', text)
+    # \(...\)
+    text = re.sub(r'\\\((?:.|\n)*?\\\)', ' ', text)
+    # LaTeX environments: \begin{...}...\end{...}
+    text = re.sub(r'\\begin\{[^\}]+\}[\s\S]*?\\end\{[^\}]+\}', ' ', text)
     
     # Remove URLs
     text = re.sub(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', ' ', text)
