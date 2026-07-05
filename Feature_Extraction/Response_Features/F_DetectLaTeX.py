@@ -68,3 +68,5 @@ def detectLaTeX(text: Any) -> bool:
     # Feature output
     # -------------------------
     return bool(latex_re.search(clean))
+
+__all__ = ["detectLaTeX"]
