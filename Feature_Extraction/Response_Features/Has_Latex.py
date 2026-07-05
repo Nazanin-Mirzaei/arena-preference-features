@@ -1,5 +1,4 @@
-"""LaTeX / Mathematical Notation Detection Module
-
+"""
 This module detects whether a text contains LaTeX or mathematical expressions
 using regex-based heuristics. It covers inline math, display math, and
 common LaTeX commands/environments.
