@@ -1,7 +1,6 @@
-"""Robust Sentence Counting Feature Module
-
+"""
 This module estimates the number of sentences in a text using lightweight
-heuristics based on punctuation and newline structure.
+rule-based heuristics based on punctuation marks and newline structure.
 """
 
 import math
