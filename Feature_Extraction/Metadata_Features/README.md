@@ -195,11 +195,3 @@ df = run_all_metadata_features(df)
 
 ---
 
-# 📈 Future Extensions
-
-Planned additions:
-
-* sentiment-based metadata features
-* coherence / repetition metrics
-* hallucination indicators
-* response entropy features
