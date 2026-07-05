@@ -40,11 +40,11 @@ def extract_token_features(meta: Dict[str, Any]) -> Dict[str, Any]:
             "assistant_token_ratio": 0.0,
         }
 
-    a_tok = meta.get("sum_assistant_a_tokens", 0)
-    b_tok = meta.get("sum_assistant_b_tokens", 0)
-    user_tok = meta.get("sum_user_tokens", 0)
-    ctx_a = meta.get("context_a_tokens", 0)
-    ctx_b = meta.get("context_b_tokens", 0)
+    a_tok = meta.get("sum_assistant_a_tokens") or 0
+    b_tok = meta.get("sum_assistant_b_tokens") or 0
+    user_tok = meta.get("sum_user_tokens") or 0
+    ctx_a = meta.get("context_a_tokens") or 0
+    ctx_b = meta.get("context_b_tokens") or 0
 
     assistant_total = a_tok + b_tok
     context_total = ctx_a + ctx_b
