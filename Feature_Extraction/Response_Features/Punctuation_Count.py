@@ -1,5 +1,4 @@
-"""Comprehensive Punctuation Counting Feature Module
-
+"""
 This module extracts a lightweight structural feature from text by counting
 common punctuation marks. It is useful for measuring writing style complexity,
 formality, and sentence structure density.
