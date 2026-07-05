@@ -43,7 +43,7 @@ def _clean_text(text: Any) -> str:
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def compute_interactive_features(text: Any) -> dict:
+def extract_interaction_features(text: Any) -> dict:
     """
     Extract interaction behavior features from a text response.
 
@@ -109,4 +109,4 @@ def compute_interactive_features(text: Any) -> dict:
         ),
     }
 
-__all__ = ["compute_interactive_features"]
+__all__ = ["extract_interaction_features"]
