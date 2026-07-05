@@ -1,5 +1,4 @@
-"""Code Delimiter Counting Feature Module
-
+"""
 This module extracts structural signals related to code presence in text
 by counting different types of code delimiters.
 
