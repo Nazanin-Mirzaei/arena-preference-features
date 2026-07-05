@@ -1,6 +1,4 @@
 """
-Code Block Detection Module
-
 Provides robust detection of code-like content in LLM responses.
 Supports:
     - Triple-backtick fenced blocks (open/closed)
