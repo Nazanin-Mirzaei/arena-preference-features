@@ -1,5 +1,4 @@
-"""Composite Interaction Behavior Features Module
-
+"""
 This module extracts interaction-related behavioral signals directly from raw text.
 It detects conversational engagement patterns such as conclusions, next-step suggestions,
 interaction prompts, and end-of-question usage.
