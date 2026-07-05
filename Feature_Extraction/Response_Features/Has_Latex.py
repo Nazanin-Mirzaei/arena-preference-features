@@ -35,7 +35,7 @@ def _clean_text(text: Any) -> str:
 # ---------------------------------------------------------
 # Main Feature: LaTeX Detector
 # ---------------------------------------------------------
-def detectLaTeX(text: Any) -> bool:
+def has_latex(text: Any) -> bool:
     """
     Detect whether text contains LaTeX or mathematical notation.
 
@@ -69,4 +69,4 @@ def detectLaTeX(text: Any) -> bool:
     # -------------------------
     return bool(latex_re.search(clean))
 
-__all__ = ["detectLaTeX"]
+__all__ = ["has_latex"]
