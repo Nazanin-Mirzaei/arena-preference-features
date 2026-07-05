@@ -65,3 +65,5 @@ def count_punct_comprehensive(text: Any) -> int:
     # Feature computation
     # -------------------------
     return len(punct_re.findall(clean))
+
+__all__ = ["count_punct_comprehensive"]
