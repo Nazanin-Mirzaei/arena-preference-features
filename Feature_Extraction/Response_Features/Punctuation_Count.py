@@ -41,7 +41,7 @@ def _clean_text(text: Any) -> str:
 # ---------------------------------------------------------
 # Main Feature: Punctuation Counter
 # ---------------------------------------------------------
-def count_punct_comprehensive(text: Any) -> int:
+def count_punctuation(text: Any) -> int:
     """
     Count occurrences of common punctuation marks in text.
 
@@ -66,4 +66,4 @@ def count_punct_comprehensive(text: Any) -> int:
     # -------------------------
     return len(punct_re.findall(clean))
 
-__all__ = ["count_punct_comprehensive"]
+__all__ = ["count_punctuation"]
