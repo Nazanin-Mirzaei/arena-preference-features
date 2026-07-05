@@ -104,3 +104,5 @@ def is_likely_text(text: Any) -> bool:
         return False
 
     return bool(alpha_ratio >= 0.45 and code_delimiters <= 2)
+
+__all__ = ["is_likely_text"]
