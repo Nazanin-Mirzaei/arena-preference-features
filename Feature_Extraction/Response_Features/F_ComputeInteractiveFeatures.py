@@ -108,3 +108,5 @@ def compute_interactive_features(text: Any) -> dict:
             + int(has_interaction_prompt)
         ),
     }
+
+__all__ = ["compute_interactive_features"]
