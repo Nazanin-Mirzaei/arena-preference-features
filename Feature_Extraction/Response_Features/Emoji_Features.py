@@ -1,7 +1,4 @@
 """
-Emoji Feature Extraction Utility
---------------------------------
-
 Provides two main functions:
     detect_emoji(text) → bool
     count_emojis(text) → int
