@@ -34,7 +34,7 @@ def _is_nan(value: Any) -> bool:
 # ---------------------------------------------------------
 # Main Detector
 # ---------------------------------------------------------
-def detect_code_block(text: Any) -> bool:
+def is_code_block(text: Any) -> bool:
     if text is None or (isinstance(text, float) and math.isnan(text)):
         return False
 
@@ -69,4 +69,4 @@ def detect_code_block(text: Any) -> bool:
     return any(re.search(p, s, re.MULTILINE) for p in heuristic_patterns)
 
 
-__all__ = ["detect_code_block"]
+__all__ = ["is_code_block"]
