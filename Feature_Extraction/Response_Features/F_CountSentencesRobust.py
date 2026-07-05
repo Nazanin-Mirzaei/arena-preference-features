@@ -70,3 +70,5 @@ def count_sentences_robust(text: Any) -> int:
         return len(sentences)
 
     return 1 if word_re.search(clean) else 0
+
+__all__ = ["count_sentences_robust"]
