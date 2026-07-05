@@ -80,3 +80,5 @@ def count_code_delimiters(text: Any) -> int:
         + len(inline_code_re.findall(clean))
         + len(html_code_re.findall(clean))
     )
+
+__all__ = ["count_code_delimiters"]
