@@ -34,7 +34,7 @@ def _clean_text(text: Any) -> str:
 # ---------------------------------------------------------
 # Main Feature: Sentence Counter
 # ---------------------------------------------------------
-def count_sentences_robust(text: Any) -> int:
+def count_sentences(text: Any) -> int:
     """
     Estimate number of sentences in a text using simple heuristics.
 
@@ -71,4 +71,4 @@ def count_sentences_robust(text: Any) -> int:
 
     return 1 if word_re.search(clean) else 0
 
-__all__ = ["count_sentences_robust"]
+__all__ = ["count_sentences"]
