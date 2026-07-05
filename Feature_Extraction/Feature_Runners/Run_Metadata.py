@@ -1,12 +1,12 @@
 import pandas as pd
 import ast
 
-from Feature_Extraction.Metadata_Features.F_Bold_Features import extract_bold_features
-from Feature_Extraction.Metadata_Features.F_Conversation_Dynamics_Features import extract_conversation_dynamics
-from Feature_Extraction.Metadata_Features.F_Header_Feature import extract_header_features
-from Feature_Extraction.Metadata_Features.F_List_Feature import extract_list_features
-from Feature_Extraction.Metadata_Features.F_Token_Feature import extract_token_features
-from Feature_Extraction.Metadata_Features.F_Dataset_Format_Baseline import extract_dataset_format_features
+from Feature_Extraction.Metadata_Features.Bold import extract_bold_features
+from Feature_Extraction.Metadata_Features.Conversation import extract_conversation_dynamics
+from Feature_Extraction.Metadata_Features.Headers import extract_header_features
+from Feature_Extraction.Metadata_Features.Lists import extract_list_features
+from Feature_Extraction.Metadata_Features.Tokens import extract_token_features
+from Feature_Extraction.Metadata_Features.Dataset_Baseline import extract_dataset_format_features
 
 
 # -------------------------------------------------
