@@ -17,8 +17,8 @@ def extract_list_features(meta: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(meta, dict):
         return {"total_list_items": 0, "ordered_ratio": 0.0, "unordered_ratio": 0.0}
 
-    a = meta.get("list_count_a", {})
-    b = meta.get("list_count_b", {})
+    a = meta.get("list_count_a") or {}
+    b = meta.get("list_count_b") or {}
 
     total_ordered = a.get("ordered", 0) + b.get("ordered", 0)
     total_unordered = a.get("unordered", 0) + b.get("unordered", 0)
