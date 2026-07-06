@@ -1,5 +1,4 @@
-"""Sentence-per-Paragraph Standard Deviation Module
-
+"""
 This module computes the population standard deviation of sentence counts
 across paragraphs in a text.
 
@@ -38,7 +37,7 @@ _SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+|\n+")
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def sd_sent_per_paragraph(text: Any) -> float:
+def compute_sentence_per_paragraph_std(text: Any) -> float:
     """
     Compute population standard deviation of sentence counts per paragraph.
     """
@@ -95,7 +94,9 @@ def sd_sent_per_paragraph(text: Any) -> float:
         for count in sentence_counts
     ) / len(sentence_counts)
 
-    return math.sqrt(variance)
+    return {
+        "sentence_per_paragraph_std": math.sqrt(variance)
+    }
 
 
-__all__ = ["sd_sent_per_paragraph"]
+__all__ = ["compute_sentence_per_paragraph_std"]
