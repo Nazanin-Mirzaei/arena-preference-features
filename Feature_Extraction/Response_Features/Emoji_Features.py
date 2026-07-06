@@ -1,5 +1,5 @@
 """
-Provides two main functions:
+This Module provides two main functions:
     detect_emoji(text) → bool
     count_emojis(text) → int
 
