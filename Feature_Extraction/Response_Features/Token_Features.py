@@ -3,18 +3,12 @@ This Module provides a robust, language-aware token count estimator suitable for
 LLM evaluation pipelines. This implementation performs adaptive token
 estimation without requiring heavy dependencies (e.g., SentencePiece,
 TikToken, transformers).
-
-It supports:
-    - Unicode-based language detection
-    - Adaptive chars-per-token ratios
-    - Whitespace normalization
-    - Safe handling of None / NaN / non-string inputs
 """
 
 from typing import Any
 import math
 import re
-#import warnings
+# import warnings
 
 DEFAULT_AVG_CHARS_PER_TOKEN = 4
 
@@ -31,26 +25,19 @@ def _is_nan(value: Any) -> bool:
 
 
 # ---------------------------------------------------------
-# Language Group Detection (Unicode-based)
+# Language Group Detection
 # ---------------------------------------------------------
 def _detect_language_group(s: str) -> str:
-    """
-    Rough classification of script types based on Unicode ranges.
-    Helps select more realistic chars-per-token ratios.
-    """
-    if re.search(r'[\u0600-\u06FF]', s):       # Arabic / Persian scripts
+    if re.search(r'[\u0600-\u06FF]', s):
         return "persian_arabic"
-    if re.search(r'[\u4E00-\u9FFF]', s):       # CJK (Chinese)
+    if re.search(r'[\u4E00-\u9FFF]', s):
         return "chinese"
-    if re.search(r'[A-Za-z]', s):              # Latin scripts
+    if re.search(r'[A-Za-z]', s):
         return "latin"
     return "other"
 
 
 def _adaptive_token_ratio(s: str, fallback: float) -> float:
-    """
-    Selects a chars/token ratio based on script heuristics.
-    """
     lang = _detect_language_group(s)
 
     if lang == "latin":
@@ -64,32 +51,20 @@ def _adaptive_token_ratio(s: str, fallback: float) -> float:
 
 
 # ---------------------------------------------------------
-# Main Function: Token Estimator
+# Main Function
 # ---------------------------------------------------------
 def count_tokens(text: Any, average_chars_per_token: float = DEFAULT_AVG_CHARS_PER_TOKEN) -> int:
-    """
-    Estimate the number of tokens in a text using an adaptive heuristic.
-    This is NOT an exact tokenizer — it is designed for large-scale,
-    dependency-free statistical analysis.
 
-    Parameters
-    ----------
-    text : Any
-        Input text (converted to string if needed)
-    average_chars_per_token : float
-        Fallback heuristic (default = 4)
-
-    Returns
-    -------
-    int
-        Estimated token count
-    """
     if _is_nan(text):
         return 0
 
+    # FIXED BLOCK 👇
     if not isinstance(text, str):
-        #warnings.warn("countTokens: Non-string input detected; coercing to string.")
-    s = str(text).strip()
+        text = str(text)
+        # optional:
+        # warnings.warn("Non-string input detected; coercing to string.")
+
+    s = text.strip()
 
     if not s:
         return 0
@@ -97,13 +72,10 @@ def count_tokens(text: Any, average_chars_per_token: float = DEFAULT_AVG_CHARS_P
     if average_chars_per_token <= 0:
         raise ValueError("average_chars_per_token must be greater than zero")
 
-    # Normalize whitespace to avoid overcounting
     s = re.sub(r"\s+", " ", s)
 
-    # Select adaptive token ratio
     ratio = _adaptive_token_ratio(s, average_chars_per_token)
 
-    # Round instead of floor to reduce bias
     est = len(s) / ratio
     return max(1, round(est))
 
