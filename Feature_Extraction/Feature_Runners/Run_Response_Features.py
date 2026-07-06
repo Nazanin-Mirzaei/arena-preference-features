@@ -1,7 +1,6 @@
 import pandas as pd
-
-from Feature_Extraction.Response_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Response_Features.Interaction_Features import extract_interaction_features
+from Feature_Extraction.Response_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Response_Features.Code_Delimiter_Count import count_code_delimiters
 from Feature_Extraction.Response_Features.Punctuation_Count import count_punctuation
 from Feature_Extraction.Response_Features.Sentence_Count import count_sentences
@@ -9,7 +8,6 @@ from Feature_Extraction.Response_Features.Has_Latex import has_latex
 from Feature_Extraction.Response_Features.Emoji_Features import detect_emoji, count_emojis
 from Feature_Extraction.Response_Features.Token_Features import count_tokens
 from Feature_Extraction.Response_Features.Is_Natural_Text import is_natural_text
-
 from Feature_Extraction.Response_Features.Sentence_Length import extract_sentence_length_features
 from Feature_Extraction.Response_Features.Paragraph_Count import extract_paragraph_features
 from Feature_Extraction.Response_Features.Paragraph_Statistics import extract_paragraph_statistics
@@ -20,13 +18,28 @@ from Feature_Extraction.Response_Features.Table_Detection import detect_tables, 
 from Feature_Extraction.Response_Features.Writing_Style_Features import extract_writing_style_features
 
 
+# -------------------------
+# flatten nested dicts
+# -------------------------
+def _flatten(d: dict, parent_key=""):
+    items = {}
+    for k, v in d.items():
+        new_key = f"{parent_key}_{k}" if parent_key else k
+
+        if isinstance(v, dict):
+            items.update(_flatten(v, new_key))
+        else:
+            items[new_key] = v
+    return items
+
+
 # -------------------------------------------------
-# Core extractor (single text)
+# Feature extractor
 # -------------------------------------------------
 def extract_all_response_features(text: str) -> dict:
+
     features = {}
 
-    # scalar features
     features["code_delimiters"] = count_code_delimiters(text)
     features["punctuation_count"] = count_punctuation(text)
     features["sentence_count"] = count_sentences(text)
@@ -36,7 +49,9 @@ def extract_all_response_features(text: str) -> dict:
     features["emoji_count"] = count_emojis(text)
 
     features["token_count"] = count_tokens(text)
-    features["repetition_density"] = compute_repetition_density(text)
+
+    rep = compute_repetition_density(text)
+    features["repetition_density"] = rep
 
     features["is_code_block"] = is_code_block(text)
     features["is_natural_text"] = is_natural_text(text)
@@ -44,7 +59,6 @@ def extract_all_response_features(text: str) -> dict:
     features["has_table"] = detect_tables(text)
     features["table_count"] = count_tables(text)
 
-    # dict features
     features.update(extract_paragraph_features(text))
     features.update(extract_paragraph_statistics(text))
 
@@ -55,39 +69,31 @@ def extract_all_response_features(text: str) -> dict:
     features.update(extract_interaction_features(text))
     features.update(extract_writing_style_features(text))
 
-    return features
+    # مهم: flatten final safety
+    return _flatten(features)
 
 
 # -------------------------------------------------
-# Helper: prefix features (IMPORTANT PART)
-# -------------------------------------------------
-def _prefix_dict(d: dict, prefix: str) -> dict:
-    return {f"{k}_{prefix}": v for k, v in d.items()}
-
-
-# -------------------------------------------------
-# Runner for A/B responses
+# Dual runner (A / B)
 # -------------------------------------------------
 def run_all_response_features(df: pd.DataFrame) -> pd.DataFrame:
+
     df = df.copy()
 
-    # -------- A features --------
     feats_a = (
         df["response_a"]
         .apply(extract_all_response_features)
         .apply(pd.Series)
+        .add_prefix("a_")
     )
-    feats_a.columns = [f"{c}_a" for c in feats_a.columns]
 
-    # -------- B features --------
     feats_b = (
         df["response_b"]
         .apply(extract_all_response_features)
         .apply(pd.Series)
+        .add_prefix("b_")
     )
-    feats_b.columns = [f"{c}_b" for c in feats_b.columns]
 
-    # -------- merge --------
     df = pd.concat([df, feats_a, feats_b], axis=1)
 
     return df
