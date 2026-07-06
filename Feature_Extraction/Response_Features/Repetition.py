@@ -1,5 +1,5 @@
 """
-Provides lightweight estimation of lexical repetition in LLM
+This Module provides lightweight estimation of lexical repetition in LLM
 responses using heuristic word-frequency analysis.
 
 Supports:
