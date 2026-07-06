@@ -1,5 +1,5 @@
 """
-Provides lightweight detection of sentence-length characteristics in
+This Module provides lightweight detection of sentence-length characteristics in
 LLM responses using heuristic rules.
 
 Supports:
