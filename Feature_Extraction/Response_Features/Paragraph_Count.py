@@ -1,5 +1,4 @@
-"""Paragraph Count Feature Module
-
+"""
 Provides lightweight paragraph counting for LLM responses using
 newline-based segmentation.
 
@@ -44,7 +43,7 @@ _PARAGRAPH_SPLIT_RE = re.compile(r"\n\s*\n+")
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def num_paragraphs(text: Any) -> int:
+def extract_paragraph_features(text: Any) -> int:
     """
     Count the number of non-empty paragraphs in a text response.
 
@@ -74,7 +73,9 @@ def num_paragraphs(text: Any) -> int:
         if paragraph.strip()
     ]
 
-    return len(paragraphs)
+    return {
+        "paragraph_count": len(paragraphs)
+    }
 
 
-__all__ = ["num_paragraphs"]
+__all__ = ["extract_paragraph_features"]
