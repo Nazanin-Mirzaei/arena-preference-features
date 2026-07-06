@@ -99,7 +99,7 @@ def extract_paragraph_statistics(text: Any) -> dict[str, float]:
         }
 
     # -------------------------
-    # Statistics
+    # Statistics 
     # -------------------------
     mean_value = sum(paragraph_lengths) / len(paragraph_lengths)
 
