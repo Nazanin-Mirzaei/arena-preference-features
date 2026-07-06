@@ -1,5 +1,4 @@
-"""Paragraph Length Statistics Module
-
+"""
 Provides lightweight paragraph-length statistics for LLM responses
 using newline-based paragraph segmentation.
 
@@ -48,7 +47,7 @@ _WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def paragraph_length_stats(text: Any) -> dict[str, float]:
+def extract_paragraph_statistics(text: Any) -> dict[str, float]:
     """
     Compute paragraph-length statistics for a text response.
     """
@@ -110,8 +109,8 @@ def paragraph_length_stats(text: Any) -> dict[str, float]:
     ) / len(paragraph_lengths)
 
     return {
-        "mean_paragraph_length": float(mean_value),
-        "sd_paragraph_length": (
+        "paragraph_length_mean": float(mean_value),
+        "paragraph_length_std": (
             float(math.sqrt(variance))
             if len(paragraph_lengths) > 1
             else 0.0
@@ -119,4 +118,4 @@ def paragraph_length_stats(text: Any) -> dict[str, float]:
     }
 
 
-__all__ = ["paragraph_length_stats"]
+__all__ = ["extract_paragraph_statistics"]
