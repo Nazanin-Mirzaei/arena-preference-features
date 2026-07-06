@@ -1,11 +1,11 @@
 import pandas as pd
 
 from Feature_Extraction.Response_Features.Is_Code_Block import is_code_block
-from Feature_Extraction.Response_Features.Interaction_Features import compute_interactive_features
+from Feature_Extraction.Response_Features.Interaction_Features import extract_interaction_features
 from Feature_Extraction.Response_Features.Code_Delimiter_Count import count_code_delimiters
 from Feature_Extraction.Response_Features.Punctuation_Count import count_punctuation
 from Feature_Extraction.Response_Features.Sentence_Count import count_sentences
-from Feature_Extraction.Response_Features.Has_Latex import detect_latex
+from Feature_Extraction.Response_Features.Has_Latex import has_latex
 from Feature_Extraction.Response_Features.Emoji_Features import detect_emoji, count_emojis
 from Feature_Extraction.Response_Features.Token_Features import count_tokens
 from Feature_Extraction.Response_Features.Is_Natural_Text import is_natural_text
