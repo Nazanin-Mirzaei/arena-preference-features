@@ -39,7 +39,7 @@ def extract_all_response_features(text: str) -> dict:
     features["code_delimiters"] = count_code_delimiters(text)
     features["punctuation_count"] = count_punctuation(text)
     features["sentence_count"] = count_sentences(text)
-    features["has_latex"] = detect_latex(text)
+    features["has_latex"] = has_latex(text)
 
     # emoji (two outputs)
     features["has_emoji"] = detect_emoji(text)
@@ -67,7 +67,7 @@ def extract_all_response_features(text: str) -> dict:
     features["sentence_per_paragraph_std"] = compute_sentence_per_paragraph_std(text)
 
     # interaction / writing style (dict outputs)
-    features.update(compute_interactive_features(text))
+    features.update(extract_interaction_features(text))
     features.update(extract_writing_style_features(text))
 
     return features
