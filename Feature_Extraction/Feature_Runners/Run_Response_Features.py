@@ -54,7 +54,7 @@ def extract_all_response_features(text: str) -> dict:
     features["has_table"] = detect_tables(text)
     features["table_count"] = count_tables(text)
 
-    # safe_update(features, extract_paragraph_features(text))
+    safe_update(features, extract_paragraph_features(text))
     safe_update(features, extract_paragraph_statistics(text))
     safe_update(features, extract_sentence_length_features(text))
 
