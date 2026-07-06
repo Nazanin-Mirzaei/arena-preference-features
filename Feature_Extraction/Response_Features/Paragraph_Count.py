@@ -1,5 +1,5 @@
 """
-Provides lightweight paragraph counting for LLM responses using
+This Module provides lightweight paragraph counting for LLM responses using
 newline-based segmentation.
 
 Supports:
