@@ -18,59 +18,34 @@ import math
 import re
 
 
-# ---------------------------------------------------------
-# Utility: NaN-safe checking
-# ---------------------------------------------------------
 def _is_nan(value: Any) -> bool:
-    """Return True if the input should be treated as missing."""
-
     if value is None:
         return True
-
     if isinstance(value, float):
         return math.isnan(value)
-
     return False
 
 
-# ---------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------
-# Paragraphs are typically separated by blank lines (\n\n or more)
 _PARAGRAPH_SPLIT_RE = re.compile(r"\n\s*\n+")
 
 
-# ---------------------------------------------------------
-# Main Feature Extractor
-# ---------------------------------------------------------
-def extract_paragraph_features(text: Any) -> int:
+def extract_paragraph_features(text: Any) -> dict:
     """
     Count the number of non-empty paragraphs in a text response.
-
-    Paragraphs are defined as blocks separated by one or more blank lines.
     """
 
-    # -------------------------
-    # Input validation
-    # -------------------------
     if _is_nan(text):
-        return 0
+        return {"paragraph_count": 0}
 
     clean_text = str(text).strip()
 
-    if not clean_text:
-        return 0
+    if not clean_text or clean_text.lower() == "nan":
+        return {"paragraph_count": 0}
 
-    if clean_text.lower() == "nan":
-        return 0
-
-    # -------------------------
-    # Paragraph segmentation
-    # -------------------------
     paragraphs = [
-        paragraph.strip()
-        for paragraph in _PARAGRAPH_SPLIT_RE.split(clean_text)
-        if paragraph.strip()
+        p.strip()
+        for p in _PARAGRAPH_SPLIT_RE.split(clean_text)
+        if p.strip()
     ]
 
     return {
