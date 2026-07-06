@@ -1,5 +1,5 @@
 """
-Provides robust detection of code-like content in LLM responses.
+This Module provides robust detection of code-like content in LLM responses.
 Supports:
     - Triple-backtick fenced blocks (open/closed)
     - Inline backtick code
