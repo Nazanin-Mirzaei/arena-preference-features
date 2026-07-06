@@ -1,6 +1,6 @@
 import pandas as pd
 
-from Feature_Extraction.Feature_Runners.Run_Metadata import run_all_metadata_features
+from Feature_Extraction.Feature_Runners.Run_Metadata_Features import run_all_metadata_features
 from Feature_Extraction.Feature_Runners.Run_Response_Features import run_all_response_features
 
 
