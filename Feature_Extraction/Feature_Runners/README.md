@@ -1,93 +1,56 @@
-# 📊 Feature Extraction Pipeline
+# Feature Runners: Execution Pipeline
 
 ## Overview
 
-This module provides a **lightweight, scalable, and dependency-free feature extraction pipeline** for analyzing LLM responses and metadata in large-scale datasets.
+This module provides the **orchestration layer** for the feature extraction system, responsible for coordinating the application of individual feature extractors across DataFrames. Each runner implements a batch-processing pipeline that parses raw inputs, applies a registry of extractors, and merges the resulting features into a flat, columnar format suitable for downstream ML workflows.
 
-It is designed for:
-
-* LLM evaluation datasets (e.g., Arena-style comparisons)
-* Response quality analysis (A/B comparisons)
-* Structural, linguistic, and statistical feature extraction
-* Fast batch processing with pandas
+The runners abstract away the complexity of input parsing, nested output flattening, and column-naming conventions, exposing a clean API over the underlying extractor modules.
 
 ---
 
-# 🧠 Pipeline Architecture
-
-The system is divided into three main layers:
+## Module Structure
 
 ```
-Feature_Extraction/
+Feature_Runners/
 │
-├── Response_Features/        # Low-level feature extractors
-├── Metadata_Features/        # Metadata feature extractors
-└── Feature_Runners/          # High-level execution pipelines
+├── Run_Metadata_Features.py     # Metadata feature extraction pipeline
+├── Run_Response_Features.py     # Response A/B feature extraction pipeline
+├── Run_All_Features.py          # Unified pipeline (metadata + response)
+│
+└── README.md
 ```
 
 ---
 
-# ⚙️ Feature Runners
+## Pipeline Components
 
-## 1. Run_Response_Features.py
+### 1. Run Metadata Features (`Run_Metadata_Features.py`)
 
-### Purpose
+**Function:** `run_all_metadata_features(df) -> pd.DataFrame`
 
-Extracts **textual and structural features** from:
+Orchestrates the extraction of all conversation-level metadata features from the `conv_metadata` column.
 
-* `response_a`
-* `response_b`
+#### Architecture
 
-### Output format
+The pipeline follows a **parse-once, apply-all** pattern for efficiency:
 
-Each feature is duplicated with prefixes:
+1. **Parsing:** Each row's `conv_metadata` is parsed once via `ast.literal_eval` (if stored as a string) and cached.
+2. **Registry dispatch:** A feature registry (`METADATA_FEATURES` list) iterates over all registered extractors, applying each to the parsed metadata.
+3. **Flattening:** Each extractor's dictionary output is expanded into individual columns via `pd.Series`.
+4. **Concatenation:** All feature DataFrames are merged with the original DataFrame along the column axis.
 
-```
-a_feature_name
-b_feature_name
-```
+#### Registered Extractors
 
-### Example features
+| Extractor | Source Module | Output Columns |
+|-----------|--------------|----------------|
+| `extract_bold_features` | `Metadata_Features.Bold` | `bold_total`, `bold_style_preference`, `emphasis_intensity` |
+| `extract_conversation_dynamics` | `Metadata_Features.Conversation` | `turns`, `is_multi_turn`, `turn_density` |
+| `extract_header_features` | `Metadata_Features.Headers` | `total_headers`, `header_depth_score` |
+| `extract_list_features` | `Metadata_Features.Lists` | `total_list_items`, `ordered_ratio`, `unordered_ratio` |
+| `extract_token_features` | `Metadata_Features.Tokens` | `assistant_tokens_total`, `user_tokens`, `context_tokens_total`, `assistant_token_ratio` |
+| `extract_dataset_format_features` | `Metadata_Features.Dataset_Baseline` | `dataset_a_bold`, `dataset_b_bold`, `dataset_a_list_ordered`, … (18 columns) |
 
-* token_count
-* sentence_count
-* repetition_density
-* paragraph_count
-* code_delimiters
-* table_count
-* writing style metrics
-
-### Usage
-
-```python
-from Feature_Extraction.Feature_Runners.Run_Response_Features import run_all_response_features
-
-df = run_all_response_features(df)
-```
-
----
-
-## 2. Run_Metadata_Features.py
-
-### Purpose
-
-Extracts structured features from conversation metadata (`conv_metadata`).
-
-### Key characteristics
-
-* Parses raw dict / string metadata
-* Applies multiple feature extractors
-* Flattens nested outputs automatically
-
-### Example features
-
-* bold usage
-* headers
-* lists
-* token structure
-* conversation dynamics
-
-### Usage
+#### Usage
 
 ```python
 from Feature_Extraction.Feature_Runners.Run_Metadata_Features import run_all_metadata_features
@@ -97,24 +60,83 @@ df = run_all_metadata_features(df)
 
 ---
 
-## 3. Run_All_Features.py
+### 2. Run Response Features (`Run_Response_Features.py`)
 
-### Purpose
+**Function:** `run_all_response_features(df) -> pd.DataFrame`
 
-Unified pipeline that runs:
+Orchestrates the extraction of all textual and structural features from both `response_a` and `response_b` columns, producing a parallel set of A-prefixed and B-prefixed feature columns.
 
-* Metadata features
-* Response A/B features
+#### Architecture
 
-### Behavior
+The pipeline follows a **dual-apply, prefix-merge** pattern:
 
-Automatically checks for required columns:
+1. **Composite extractor:** A single `extract_all_response_features(text)` function aggregates all 17 individual extractors into one dictionary-returning callable.
+2. **Dual dispatch:** The composite extractor is applied independently to `response_a` and `response_b`.
+3. **Prefix assignment:** Each feature set receives a prefix (`a_` or `b_`) to enable pairwise comparison.
+4. **Concatenation:** Both feature sets are merged with the original DataFrame.
 
-* `conv_metadata`
-* `response_a`
-* `response_b`
+#### Composite Feature Set
 
-### Usage
+The `extract_all_response_features` function produces the following dictionary (after `safe_update` merges from dict-returning extractors):
+
+| Key | Type | Source |
+|-----|------|--------|
+| `primary_language` | `str` | `Language_Detection.api.detectLanguage` |
+| `is_multilingual` | `bool` | `Language_Detection.api.detectMultiLanguage` |
+| `code_delimiters` | `int` | `Code_Delimiter_Count.count_code_delimiters` |
+| `punctuation_count` | `int` | `Punctuation_Count.count_punctuation` |
+| `sentence_count` | `int` | `Sentence_Count.count_sentences` |
+| `has_latex` | `bool` | `Has_Latex.has_latex` |
+| `has_emoji` | `bool` | `Emoji_Features.detect_emoji` |
+| `emoji_count` | `int` | `Emoji_Features.count_emojis` |
+| `token_count` | `int` | `Token_Features.count_tokens` |
+| `repetition_density` | `float` | `Repetition.compute_repetition_density` |
+| `is_code_block` | `bool` | `Is_Code_Block.is_code_block` |
+| `is_natural_text` | `bool` | `Is_Natural_Text.is_natural_text` |
+| `has_table` | `bool` | `Table_Detection.detect_tables` |
+| `table_count` | `int` | `Table_Detection.count_tables` |
+| `paragraph_count` | `int` | `Paragraph_Count.extract_paragraph_features` |
+| `paragraph_length_mean` | `float` | `Paragraph_Statistics.extract_paragraph_statistics` |
+| `paragraph_length_std` | `float` | `Paragraph_Statistics.extract_paragraph_statistics` |
+| `long_sentence_count` | `int` | `Sentence_Length.extract_sentence_length_features` |
+| `short_sentence_count` | `int` | `Sentence_Length.extract_sentence_length_features` |
+| `sentence_length_std` | `float` | `Sentence_Length_Stats.compute_sentence_length_std` |
+| `sentence_per_paragraph_std` | `float` | `Sentence_Paragraph_Stats.compute_sentence_per_paragraph_std` |
+| `has_question_at_end` | `bool` | `Interaction_Features.extract_interaction_features` |
+| `has_conclusion` | `bool` | `Interaction_Features.extract_interaction_features` |
+| `has_next_steps` | `bool` | `Interaction_Features.extract_interaction_features` |
+| `has_interaction_prompt` | `bool` | `Interaction_Features.extract_interaction_features` |
+| `interaction_score` | `int` | `Interaction_Features.extract_interaction_features` |
+| `word_count` | `int` | `Writing_Style_Features.extract_writing_style_features` |
+| `avg_words_per_sentence` | `float` | `Writing_Style_Features.extract_writing_style_features` |
+| `is_detailed` | `bool` | `Writing_Style_Features.extract_writing_style_features` |
+| `has_step_by_step` | `bool` | `Writing_Style_Features.extract_writing_style_features` |
+
+After prefixing, each column appears as `a_<name>` and `b_<name>`, enabling direct differential analysis.
+
+#### Usage
+
+```python
+from Feature_Extraction.Feature_Runners.Run_Response_Features import run_all_response_features
+
+df = run_all_response_features(df)
+```
+
+---
+
+### 3. Run All Features (`Run_All_Features.py`)
+
+**Function:** `run_all_features(df) -> pd.DataFrame`
+
+A unified pipeline that conditionally executes both metadata and response feature extractors based on column availability.
+
+#### Behavior
+
+1. If the DataFrame contains a `conv_metadata` column, metadata features are extracted via `run_all_metadata_features`.
+2. If the DataFrame contains both `response_a` and `response_b` columns, response features are extracted via `run_all_response_features`.
+3. Both conditions can be satisfied simultaneously, producing a fully featured DataFrame.
+
+#### Usage
 
 ```python
 from Feature_Extraction.Feature_Runners.Run_All_Features import run_all_features
@@ -124,128 +146,113 @@ df = run_all_features(df)
 
 ---
 
-# 🧩 Feature Design Principles
+## Output Schema
 
-## 1. Stateless Functions
+After running the full pipeline via `run_all_features`, the output DataFrame contains:
 
-Each feature function:
-
-* takes `text` as input
-* returns `dict` or scalar
-* has no side effects
-
----
-
-## 2. Safe Aggregation
-
-All nested outputs are handled using:
-
-* `safe_update()`
-* `_flatten()` where needed
-
-This ensures:
-
-* no crashes from nested dicts
-* consistent output schema
-
----
-
-## 3. Robust Input Handling
-
-All features support:
-
-* `None`
-* `NaN`
-* empty strings
-* non-string inputs
-
----
-
-## 4. Dual Response Design
-
-Response features are always split into:
-
-* `response_a → a_*`
-* `response_b → b_*`
-
-This enables:
-
-* direct A/B comparison
-* model ranking features
-* difference analysis
-
----
-
-# 🚀 Output Example
-
-After running the full pipeline:
-
-```python
-df = run_all_features(df)
-```
-
-You will get columns like:
-
-### Response A
+### Metadata Features (no prefix)
 
 ```
-a_token_count
+bold_total
+bold_style_preference
+emphasis_intensity
+turns
+is_multi_turn
+turn_density
+total_headers
+header_depth_score
+total_list_items
+ordered_ratio
+unordered_ratio
+assistant_tokens_total
+user_tokens
+context_tokens_total
+assistant_token_ratio
+dataset_a_bold
+dataset_b_bold
+...
+```
+
+### Response A Features (prefixed `a_`)
+
+```
+a_primary_language
+a_is_multilingual
+a_code_delimiters
+a_punctuation_count
 a_sentence_count
+a_has_latex
+a_has_emoji
+a_emoji_count
+a_token_count
 a_repetition_density
+a_is_code_block
+a_is_natural_text
+a_has_table
+a_table_count
 a_paragraph_count
+a_paragraph_length_mean
+a_paragraph_length_std
+a_long_sentence_count
+a_short_sentence_count
+a_sentence_length_std
+a_sentence_per_paragraph_std
+a_has_question_at_end
+a_has_conclusion
+a_has_next_steps
+a_has_interaction_prompt
+a_interaction_score
+a_word_count
+a_avg_words_per_sentence
+a_is_detailed
+a_has_step_by_step
 ```
 
-### Response B
+### Response B Features (prefixed `b_`)
 
-```
-b_token_count
-b_sentence_count
-b_repetition_density
-b_paragraph_count
-```
-
-### Metadata
-
-```
-bold_count
-header_depth
-conversation_turns
-list_density
-```
+Identical schema to response A, with `b_` prefix.
 
 ---
 
-# ⚠️ Known Design Constraints
+## Design Principles
 
-* Some features return nested dictionaries → must be flattened
-* Feature consistency is required (dict vs scalar issues must be avoided)
-* Column naming must remain stable for downstream ML pipelines
+### Column-Gated Execution
+
+Each runner checks for the existence of required input columns before applying extraction. This enables the unified pipeline to gracefully handle DataFrames with partial column availability without raising errors.
+
+### Parse-Once Optimization
+
+Metadata features share a common parsing step (`ast.literal_eval`). The pipeline performs this parsing exactly once per row, then dispatches the parsed dictionary to all registered extractors, avoiding redundant deserialization.
+
+### Extensible Registry Pattern
+
+Metadata features are registered in a list (`METADATA_FEATURES`), making it straightforward to add or remove extractors without modifying pipeline logic. Response features use a composite function pattern where new extractors can be incorporated into `extract_all_response_features`.
+
+### Safe Nested Output Handling
+
+The `safe_update` utility in `Run_Response_Features.py` ensures that extractors returning dictionaries are safely merged into the feature collection, while extractors returning scalars are assigned directly. This provides robustness against inconsistent return types across extractors.
+
+### Dual-Response Naming Convention
+
+Response features are systematically prefixed with `a_` and `b_`, preserving a consistent naming convention that enables:
+- Column-wise differential analysis (`df["a_token_count"] - df["b_token_count"]`)
+- Automatic feature pairing for pairwise models
+- Clear provenance tracking for each feature
 
 ---
 
-# 🧪 Recommended Usage Pattern
+## Intended Use Cases
 
-```python
-import pandas as pd
-
-from Feature_Extraction.Feature_Runners.Run_All_Features import run_all_features
-
-df = pd.read_csv("data.csv")
-
-df = run_all_features(df)
-
-print(df.shape)
-print(df.columns[:20])
-```
+- **End-to-end feature extraction:** Apply the full pipeline to a raw LM-Arena dataset and produce a feature-rich DataFrame for downstream modeling.
+- **Modular extraction:** Choose between metadata-only, response-only, or combined extraction depending on the analytical target.
+- **Batch processing at scale:** Each runner operates entirely via `pandas.apply` and is compatible with parallelization backends (e.g., `pandarallel`, `swifter`, `dask`).
+- **Pipeline integration:** The uniform return type (`pd.DataFrame`) allows these runners to be composed into larger data processing workflows.
 
 ---
 
-# 📌 Summary
+## Notes
 
-This pipeline provides:
-
-✔ scalable feature extraction
-✔ dual-response analysis (A/B)
-✔ metadata + text integration
-✔ safe handling of nested outputs
-✔ clean modular architecture
+- The `extract_all_response_features` function in `Run_Response_Features.py` depends on `Language_Detection.api` for language identification. This is the only external module dependency in the response pipeline.
+- `Run_Response_Features.py` contains a duplicate definition of `safe_update` (lines 24–28 and 33–35); the second definition silently overrides the first at module load time. Both implementations are functionally identical.
+- Metadata parsing uses `ast.literal_eval`, which safely evaluates string representations of Python dictionaries. It is restricted to literal expressions and does not execute arbitrary code.
+- All runners operate on a copy of the input DataFrame to avoid mutating the caller's data.
