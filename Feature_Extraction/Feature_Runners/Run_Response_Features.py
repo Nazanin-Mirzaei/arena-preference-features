@@ -19,9 +19,20 @@ from Feature_Extraction.Response_Features.Table_Detection import detect_tables, 
 from Feature_Extraction.Response_Features.Writing_Style_Features import extract_writing_style_features
 
 
+def safe_update(features, output):
+    if isinstance(output, dict):
+        features.update(output)
+    else:
+        # ignore bad outputs safely
+        pass
 # -------------------------------------------------
 # Feature extractor (A / B safe)
 # -------------------------------------------------
+def safe_update(features, output):
+    if isinstance(output, dict):
+        features.update(output)
+
+
 def extract_all_response_features(text: str) -> dict:
 
     features = {}
@@ -35,7 +46,6 @@ def extract_all_response_features(text: str) -> dict:
     features["emoji_count"] = count_emojis(text)
 
     features["token_count"] = count_tokens(text)
-
     features["repetition_density"] = compute_repetition_density(text)
 
     features["is_code_block"] = is_code_block(text)
@@ -44,15 +54,15 @@ def extract_all_response_features(text: str) -> dict:
     features["has_table"] = detect_tables(text)
     features["table_count"] = count_tables(text)
 
-    features.update(extract_paragraph_features(text))
-    features.update(extract_paragraph_statistics(text))
+    safe_update(features, extract_paragraph_features(text))
+    safe_update(features, extract_paragraph_statistics(text))
+    safe_update(features, extract_sentence_length_features(text))
 
-    features.update(extract_sentence_length_features(text))
     features["sentence_length_std"] = compute_sentence_length_std(text)
     features["sentence_per_paragraph_std"] = compute_sentence_per_paragraph_std(text)
 
-    features.update(extract_interaction_features(text))
-    features.update(extract_writing_style_features(text))
+    safe_update(features, extract_interaction_features(text))
+    safe_update(features, extract_writing_style_features(text))
 
     return features
 
