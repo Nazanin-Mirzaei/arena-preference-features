@@ -59,15 +59,15 @@ The feature extraction system is organized into three hierarchical layers:
 
 ```
 ┌─────────────────────────────────────────────────────────┐
-│                   Feature_Runners                        │
-│   Orchestration layer: batch processing, input parsing,  │
-│   output flattening, column naming conventions           │
+│                   Feature_Runners                       │
+│   Orchestration layer: batch processing, input parsing, │
+│   output flattening, column naming conventions          │
 ├─────────────────────┬───────────────────────────────────┤
-│  Metadata_Features  │         Response_Features          │
-│  (conv_metadata)    │     (response_a / response_b)      │
+│  Metadata_Features  │         Response_Features         │
+│  (conv_metadata)    │     (response_a / response_b)     │
 ├─────────────────────┴───────────────────────────────────┤
-│               Individual Feature Extractors                │
-│   Stateless, pure functions operating on single inputs     │
+│               Individual Feature Extractors             │
+│   Stateless, pure functions operating on single inputs  │
 └─────────────────────────────────────────────────────────┘
 ```
 
