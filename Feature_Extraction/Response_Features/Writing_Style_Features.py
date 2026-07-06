@@ -1,7 +1,4 @@
 """
-Writing Style Analysis Module
-=============================
-
 This module extracts structural and linguistic features from text responses.
 It is designed for LLM evaluation pipelines and supports:
 
@@ -33,7 +30,7 @@ def _is_nan(value: Any) -> bool:
 # ---------------------------------------------------------
 # Main writing-style analysis function
 # ---------------------------------------------------------
-def analyze_writing_style(text: Any) -> Dict[str, Any]:
+def extract_writing_style_features(text: Any) -> Dict[str, Any]:
     """
     Extract structural writing-style features from text.
 
@@ -133,4 +130,4 @@ def analyze_writing_style(text: Any) -> Dict[str, Any]:
     }
 
 
-__all__ = ["analyze_writing_style"]
+__all__ = ["extract_writing_style_features"]
