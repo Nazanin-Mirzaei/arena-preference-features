@@ -41,40 +41,14 @@ _WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
 # Main Feature Extractor
 # ---------------------------------------------------------
 def compute_repetition_density(text: Any) -> float:
-    """
-    Compute lexical repetition density for a text response.
-
-    Repetition density is defined as the proportion of repeated
-    tokens relative to the total number of tokens.
-
-    Parameters
-    ----------
-    text : Any
-        Input response text.
-
-    Returns
-    -------
-    float
-        Lexical repetition density.
-    """
-
-    # -------------------------
-    # Input validation
-    # -------------------------
     if _is_nan(text):
         return 0.0
 
     clean_text = str(text).strip()
 
-    if not clean_text:
+    if not clean_text or clean_text.lower() == "nan":
         return 0.0
 
-    if clean_text.lower() == "nan":
-        return 0.0
-
-    # -------------------------
-    # Word Extraction
-    # -------------------------
     words = [
         word.lower()
         for word in _WORD_RE.findall(clean_text)
@@ -83,14 +57,9 @@ def compute_repetition_density(text: Any) -> float:
     if not words:
         return 0.0
 
-    # -------------------------
-    # Repetition Calculation
-    # -------------------------
     repeated_tokens = len(words) - len(set(words))
 
-    return {
-        "repetition_density": float(repeated_tokens / len(words))
-    }
+    return float(repeated_tokens / len(words))
 
 
 __all__ = ["compute_repetition_density"]
