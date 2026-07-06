@@ -1,5 +1,7 @@
 import pandas as pd
 
+from Language_Detection.api import detectLanguage
+from Language_Detection.api import detectMultiLanguage
 from Feature_Extraction.Response_Features.Interaction_Features import extract_interaction_features
 from Feature_Extraction.Response_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Response_Features.Code_Delimiter_Count import count_code_delimiters
@@ -36,6 +38,9 @@ def safe_update(features, output):
 def extract_all_response_features(text: str) -> dict:
 
     features = {}
+
+    features["primary_language"] = detectLanguage(text)
+    features["is_multilingual"] = detectMultiLanguage(text)["is_multi_language"]
 
     features["code_delimiters"] = count_code_delimiters(text)
     features["punctuation_count"] = count_punctuation(text)
