@@ -1,4 +1,5 @@
 import pandas as pd
+
 from Feature_Extraction.Response_Features.Interaction_Features import extract_interaction_features
 from Feature_Extraction.Response_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Response_Features.Code_Delimiter_Count import count_code_delimiters
@@ -18,23 +19,8 @@ from Feature_Extraction.Response_Features.Table_Detection import detect_tables, 
 from Feature_Extraction.Response_Features.Writing_Style_Features import extract_writing_style_features
 
 
-# -------------------------
-# flatten nested dicts
-# -------------------------
-def _flatten(d: dict, parent_key=""):
-    items = {}
-    for k, v in d.items():
-        new_key = f"{parent_key}_{k}" if parent_key else k
-
-        if isinstance(v, dict):
-            items.update(_flatten(v, new_key))
-        else:
-            items[new_key] = v
-    return items
-
-
 # -------------------------------------------------
-# Feature extractor
+# Feature extractor (A / B safe)
 # -------------------------------------------------
 def extract_all_response_features(text: str) -> dict:
 
@@ -50,8 +36,7 @@ def extract_all_response_features(text: str) -> dict:
 
     features["token_count"] = count_tokens(text)
 
-    rep = compute_repetition_density(text)
-    features["repetition_density"] = rep
+    features["repetition_density"] = compute_repetition_density(text)
 
     features["is_code_block"] = is_code_block(text)
     features["is_natural_text"] = is_natural_text(text)
@@ -69,12 +54,11 @@ def extract_all_response_features(text: str) -> dict:
     features.update(extract_interaction_features(text))
     features.update(extract_writing_style_features(text))
 
-    # مهم: flatten final safety
-    return _flatten(features)
+    return features
 
 
 # -------------------------------------------------
-# Dual runner (A / B)
+# Dual Runner (A / B columns)
 # -------------------------------------------------
 def run_all_response_features(df: pd.DataFrame) -> pd.DataFrame:
 
