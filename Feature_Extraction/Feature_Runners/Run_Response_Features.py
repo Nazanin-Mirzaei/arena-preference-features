@@ -56,7 +56,7 @@ def extract_all_response_features(text: str) -> dict:
 
     # safe_update(features, extract_paragraph_features(text))
     # safe_update(features, extract_paragraph_statistics(text))
-    # safe_update(features, extract_sentence_length_features(text))
+    safe_update(features, extract_sentence_length_features(text))
 
     features["sentence_length_std"] = compute_sentence_length_std(text)
     features["sentence_per_paragraph_std"] = compute_sentence_per_paragraph_std(text)
