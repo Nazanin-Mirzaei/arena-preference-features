@@ -1,5 +1,5 @@
 """
-Provides lightweight paragraph-length statistics for LLM responses
+This Module provides lightweight paragraph-length statistics for LLM responses
 using newline-based paragraph segmentation.
 
 Supports:
