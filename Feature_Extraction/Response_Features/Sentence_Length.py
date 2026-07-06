@@ -1,6 +1,4 @@
 """
-Long and Short Sentence Detection Module
-
 Provides lightweight detection of sentence-length characteristics in
 LLM responses using heuristic rules.
 
@@ -49,7 +47,7 @@ _LONG_SENTENCE_MIN_WORDS = 30
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def long_short_sentences(text: Any) -> dict[str, int]:
+def extract_sentence_length_features(text: Any) -> dict[str, int]:
     """
     Count long and short sentences in a text response.
 
@@ -119,9 +117,9 @@ def long_short_sentences(text: Any) -> dict[str, int]:
     )
 
     return {
-        "long_sents": int(long_sents),
-        "short_sents": int(short_sents),
+        "long_sentence_count": int(long_sents),
+        "short_sentence_count": int(short_sents),
     }
 
 
-__all__ = ["long_short_sentences"]
+__all__ = ["extract_sentence_length_features"]
