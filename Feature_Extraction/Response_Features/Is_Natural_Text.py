@@ -1,5 +1,4 @@
-"""Natural Text vs Code-Like Content Classifier
-
+"""
 This module determines whether a given input is more likely to be natural
 language (prose) or code/markup-like content using lightweight heuristics.
 
@@ -36,7 +35,7 @@ def _clean_text(text: Any) -> str:
 # ---------------------------------------------------------
 # Main Classifier: Likely Natural Text
 # ---------------------------------------------------------
-def is_likely_text(text: Any) -> bool:
+def is_natural_text(text: Any) -> bool:
     """
     Determine whether input is likely natural language rather than code.
 
@@ -105,4 +104,4 @@ def is_likely_text(text: Any) -> bool:
 
     return bool(alpha_ratio >= 0.45 and code_delimiters <= 2)
 
-__all__ = ["is_likely_text"]
+__all__ = ["is_natural_text"]
