@@ -1,5 +1,5 @@
 """
-Provides a robust, language-aware token count estimator suitable for
+This Module provides a robust, language-aware token count estimator suitable for
 LLM evaluation pipelines. This implementation performs adaptive token
 estimation without requiring heavy dependencies (e.g., SentencePiece,
 TikToken, transformers).
