@@ -1,6 +1,4 @@
 """
-Lexical Repetition Density Module
-
 Provides lightweight estimation of lexical repetition in LLM
 responses using heuristic word-frequency analysis.
 
@@ -42,7 +40,7 @@ _WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def repetition_density(text: Any) -> float:
+def compute_repetition_density(text: Any) -> float:
     """
     Compute lexical repetition density for a text response.
 
@@ -90,7 +88,9 @@ def repetition_density(text: Any) -> float:
     # -------------------------
     repeated_tokens = len(words) - len(set(words))
 
-    return float(repeated_tokens / len(words))
+    return {
+        "repetition_density": float(repeated_tokens / len(words))
+    }
 
 
-__all__ = ["repetition_density"]
+__all__ = ["compute_repetition_density"]
