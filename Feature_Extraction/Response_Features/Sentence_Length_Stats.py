@@ -1,7 +1,5 @@
 """
-Sentence Length Standard Deviation Module
-
-Provides lightweight sentence-length dispersion statistics for
+This Module provides lightweight sentence-length dispersion statistics for
 LLM responses using heuristic sentence segmentation.
 
 Supports:
@@ -43,7 +41,7 @@ _WORD_RE = re.compile(r"\b\w+\b", flags=re.UNICODE)
 # ---------------------------------------------------------
 # Main Feature Extractor
 # ---------------------------------------------------------
-def sd_sent_len(text: Any) -> float:
+def compute_sentence_length_std(text: Any) -> float:
     """
     Compute the population standard deviation of sentence lengths.
 
@@ -105,7 +103,9 @@ def sd_sent_len(text: Any) -> float:
         for length in sentence_lengths
     ) / len(sentence_lengths)
 
-    return float(math.sqrt(variance))
+    return {
+        "sentence_length_std": float(math.sqrt(variance))
+    }
 
 
-__all__ = ["sd_sent_len"]
+__all__ = ["compute_sentence_length_std"]
