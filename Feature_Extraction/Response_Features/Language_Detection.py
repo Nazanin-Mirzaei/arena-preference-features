@@ -1,5 +1,5 @@
 """
-Provides:
+This Module provides:
     - detect_language: primary language detection
     - detect_multi_language: chunk-based multilingual analysis
     - detect_response_language: tuned for long LLM responses
