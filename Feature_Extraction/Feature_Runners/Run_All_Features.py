@@ -1,7 +1,7 @@
 import pandas as pd
 
 from Feature_Extraction.Feature_Runners.Run_Metadata_Features import run_all_metadata_features
-from Feature_Extraction.Feature_Runners.Run_Response_Features import run_all_response_features
+from Feature_Extraction.Feature_Runners.Run_Text_Features import run_all_Text_Features
 
 
 def run_all_features(df: pd.DataFrame) -> pd.DataFrame:
@@ -14,10 +14,17 @@ def run_all_features(df: pd.DataFrame) -> pd.DataFrame:
         df = run_all_metadata_features(df)
 
     # -------------------------
-    # Response features (A / B)
+    # Text features
+    # (user_prompt + response_a + response_b)
     # -------------------------
-    if "response_a" in df.columns and "response_b" in df.columns:
-        df = run_all_response_features(df)
+    required_text_columns = [
+        "user_prompt",
+        "response_a",
+        "response_b"
+    ]
+
+    if all(col in df.columns for col in required_text_columns):
+        df = run_all_Text_Features(df)
 
     return df
 
