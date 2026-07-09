@@ -2,9 +2,9 @@
 
 ## Overview
 
-This module provides a **comprehensive suite of feature extractors** designed to capture structural, formatting, and conversational properties from conversation-level metadata (`conv_metadata`) in the LM-Arena dataset. Each extractor operates on a pre-parsed metadata dictionary and returns a flat dictionary of interpretable, ML-ready features.
+This module provides a **comprehensive suite of feature extractors** designed to capture structural, formatting, conversational, and interaction-type properties from two dataset-provided metadata columns in the LM-Arena dataset: conversation-level metadata (`conv_metadata`) and interaction-category labels (`category_tag`). Each extractor operates on a pre-parsed dictionary and returns a flat dictionary of interpretable, ML-ready features.
 
-These features capture latent signals about LLM response behavior that are not directly observable from raw text alone, including formatting tendencies, conversational depth, and token allocation patterns.
+These features capture latent signals about LLM response behavior that are not directly observable from raw text alone, including formatting tendencies, conversational depth, token allocation patterns, and the interaction type of the prompt itself (creative writing, math, instruction-following, etc.).
 
 ---
 
@@ -16,9 +16,10 @@ Metadata_Features/
 ├── Bold.py                 # Bold text frequency and style preference
 ├── Headers.py              # Markdown heading depth and distribution
 ├── Lists.py                # Ordered / unordered list segmentation
-├── Tokens.py               # Assistant, user, and context token counts
+├── Tokens.py                # Assistant, user, and context token counts
 ├── Conversation.py         # Turn-taking dynamics and density
 ├── Dataset_Baseline.py     # Unified baseline extractor (all formatting fields)
+├── Category_Tag.py         # Flattened interaction-type labels (category_tag column)
 │
 └── README.md
 ```
@@ -27,7 +28,7 @@ Metadata_Features/
 
 ## Input Format
 
-All feature extractors accept a single `conv_metadata` dictionary extracted from the LM-Arena dataset:
+Most feature extractors in this module accept a single `conv_metadata` dictionary extracted from the LM-Arena dataset:
 
 ```python
 meta: Dict[str, Any]
@@ -43,6 +44,8 @@ The metadata dictionary is expected to contain fields such as:
 - `turns`
 
 Each extractor gracefully handles `None`, `NaN`, missing keys, and non-dict inputs by returning a default zero-initialized feature vector.
+
+`Category_Tag.py` is the one exception: it reads from a **separate** dataset column, `category_tag`, not `conv_metadata`. See [Category Tag Features](#7-category-tag-features-category_tagpy) below.
 
 ---
 
@@ -137,6 +140,34 @@ A unified extractor that mirrors all formatting-related fields natively present 
 
 ---
 
+### 7. Category Tag Features (`Category_Tag.py`)
+
+**Function:** `extract_category_tag_features(value)`
+
+Flattens the dataset-provided `category_tag` column into individual interpretable feature columns. Unlike every other extractor in this module, its input is the raw `category_tag` cell (a dict or its string representation), **not** a parsed `conv_metadata` dictionary — `Run_Metadata_Features.py` applies it to the `category_tag` column directly rather than the shared `conv_metadata` registry.
+
+`category_tag` contains human/model labels describing the interaction type of the prompt, grouped into versioned sub-objects (e.g. `criteria_v0.1`, `if_v0.1`). Group lookup strips the version suffix (`criteria` matches `criteria_v0.1`, `criteria_v0.2`, ...), so extraction survives dataset version bumps, and output feature names are version-free for long-term stability.
+
+| Feature | Type | Description |
+|---------|------|-------------|
+| `cat_complexity` | `bool` | Prompt requires multi-step or non-trivial reasoning |
+| `cat_creativity` | `bool` | Prompt rewards creative/original output |
+| `cat_domain_knowledge` | `bool` | Prompt requires specialized domain knowledge |
+| `cat_problem_solving` | `bool` | Prompt is a problem-solving task |
+| `cat_real_world` | `bool` | Prompt is grounded in a real-world scenario |
+| `cat_specificity` | `bool` | Prompt demands a specific, precise answer |
+| `cat_technical_accuracy` | `bool` | Prompt requires technically accurate output |
+| `cat_creative_writing` | `bool` | Prompt is a creative writing task |
+| `cat_math` | `bool` | Prompt is a math task |
+| `cat_if` | `bool` | Prompt contains explicit instruction-following constraints |
+| `cat_if_score` | `int` | Instruction-following complexity score (0–4) |
+
+These are free, pre-labeled interaction-type signals — no heuristics or NLP involved, just structural flattening. They let a downstream classifier learn **conditional** preferences: e.g. verbosity or step-by-step structure may help on `cat_complexity`/`cat_problem_solving` prompts but hurt on prompts asking for a short, precise answer.
+
+Fully defensive: `None`, `NaN`, malformed strings, missing sub-groups, and unexpected value types all fall back to `False` / `0` per field rather than raising.
+
+---
+
 ## Usage Examples
 
 ### Single Feature Extraction
@@ -165,6 +196,17 @@ df["assistant_tokens"] = df["conv_metadata"].apply(
 )
 ```
 
+### Category Tag Extraction
+
+```python
+from Metadata_Features.Category_Tag import extract_category_tag_features
+
+category_tag = df.loc[0, "category_tag"]
+
+cat_feats = extract_category_tag_features(category_tag)
+# {"cat_complexity": True, "cat_creativity": False, ..., "cat_if_score": 2}
+```
+
 ### Full Metadata Pipeline via Feature Runner
 
 ```python
@@ -172,6 +214,8 @@ from Feature_Extraction.Feature_Runners.Run_Metadata_Features import run_all_met
 
 df = run_all_metadata_features(df)
 ```
+
+`run_all_metadata_features` applies the `conv_metadata`-based extractors first, then separately applies `Category_Tag.py` to the `category_tag` column if present — both are column-gated, so either can be safely absent from the input DataFrame.
 
 ---
 
@@ -205,6 +249,7 @@ All features are returned as primitive types (`int`, `float`, `bool`, `str`) sui
 - **Conversation-level quality analysis:** `turns`, `turn_density`, and `assistant_token_ratio` provide insight into conversational depth and engagement.
 - **Baseline validation:** `Dataset_Baseline.py` is used to verify consistency between extracted features and dataset-provided fields.
 - **Feature engineering for reward models:** Metadata features serve as high-level structural priors for preference and reward modeling tasks.
+- **Conditional preference modeling:** `Category_Tag.py`'s `cat_*` features let downstream models (or precomputed interaction terms) condition other features — length, formatting, structure — on the type of prompt being answered, rather than treating those signals as universally good or bad.
 
 ---
 
@@ -212,4 +257,6 @@ All features are returned as primitive types (`int`, `float`, `bool`, `str`) sui
 
 - Bold counts in `Dataset_Baseline.py` only track star-style (`**`) bold syntax, while `Bold.py` also captures underscore-style (`__`).
 - Token features are heuristic estimates derived from the dataset's metadata token counters, not from a standalone tokenizer.
-- All extractors in this module operate on **pre-parsed metadata dictionaries**, not raw JSON strings. Use `ast.literal_eval` or `json.loads` if metadata is stored as a string.
+- All extractors in this module except `Category_Tag.py` operate on **pre-parsed `conv_metadata` dictionaries**, not raw JSON strings. Use `ast.literal_eval` or `json.loads` if metadata is stored as a string — or pass the raw string directly, since every extractor's own parsing helper (or the runner's `parse_metadata`) handles that internally.
+- `Category_Tag.py` operates on the separate `category_tag` column and handles its own parsing (`parse_category_tag`) independently of `conv_metadata` parsing.
+- `Category_Tag.py`'s group lookup is version-suffix-tolerant (`criteria` matches `criteria_v0.1`, `criteria_v0.2`, ...), so it does not need to be updated when the dataset's `category_tag` schema version changes, as long as the sub-group and field names stay the same.
