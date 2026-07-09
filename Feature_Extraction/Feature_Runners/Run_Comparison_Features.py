@@ -7,6 +7,7 @@ from Feature_Extraction.Comparison_Features.Paragraph_Count_Comparison import ex
 from Feature_Extraction.Comparison_Features.Code_Delimiters_Comparison import extract_code_delimiters_comparison
 from Feature_Extraction.Comparison_Features.Punctuation_Count_Comparison import extract_punctuation_count_comparison
 from Feature_Extraction.Comparison_Features.Repetition_Density_Comparison import extract_repetition_density_comparison
+from Feature_Extraction.Comparison_Features.Format_Richness_Comparison import extract_format_richness_comparison
 
 
 # -------------------------------------------------
@@ -93,6 +94,33 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_repetition_density_comparison(
                 row["a_repetition_density"], row["b_repetition_density"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    header_level_columns = [f"header_h{level}" for level in range(1, 7)]
+    format_richness_columns = (
+        ["dataset_a_bold", "dataset_b_bold"]
+        + [f"dataset_a_{col}" for col in header_level_columns]
+        + [f"dataset_b_{col}" for col in header_level_columns]
+        + ["dataset_a_list_ordered", "dataset_a_list_unordered"]
+        + ["dataset_b_list_ordered", "dataset_b_list_unordered"]
+        + ["a_table_count", "b_table_count"]
+    )
+
+    if all(col in df.columns for col in format_richness_columns):
+        comparison_features = df.apply(
+            lambda row: extract_format_richness_comparison(
+                a_bold=row["dataset_a_bold"],
+                a_headers=sum(row[f"dataset_a_{col}"] for col in header_level_columns),
+                a_list_items=row["dataset_a_list_ordered"] + row["dataset_a_list_unordered"],
+                a_tables=row["a_table_count"],
+                b_bold=row["dataset_b_bold"],
+                b_headers=sum(row[f"dataset_b_{col}"] for col in header_level_columns),
+                b_list_items=row["dataset_b_list_ordered"] + row["dataset_b_list_unordered"],
+                b_tables=row["b_table_count"],
             ),
             axis=1,
         ).apply(pd.Series)
