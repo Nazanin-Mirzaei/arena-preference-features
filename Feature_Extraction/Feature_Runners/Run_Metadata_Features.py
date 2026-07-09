@@ -7,6 +7,7 @@ from Feature_Extraction.Metadata_Features.Headers import extract_header_features
 from Feature_Extraction.Metadata_Features.Lists import extract_list_features
 from Feature_Extraction.Metadata_Features.Tokens import extract_token_features
 from Feature_Extraction.Metadata_Features.Dataset_Baseline import extract_dataset_format_features
+from Feature_Extraction.Metadata_Features.Category_Tag import extract_category_tag_features
 
 
 # -------------------------------------------------
@@ -52,6 +53,18 @@ def run_all_metadata_features(df: pd.DataFrame) -> pd.DataFrame:
 
     # Merge all feature outputs
     df = pd.concat([df] + feature_frames, axis=1)
+
+    # -------------------------
+    # Category tag features
+    # (separate column: category_tag, not conv_metadata)
+    # -------------------------
+    if "category_tag" in df.columns:
+        category_features = (
+            df["category_tag"]
+            .apply(extract_category_tag_features)
+            .apply(pd.Series)
+        )
+        df = pd.concat([df, category_features], axis=1)
 
     return df
 
