@@ -16,6 +16,7 @@ from Feature_Extraction.Comparison_Features.Format_Compliance_Comparison import 
 from Feature_Extraction.Comparison_Features.Length_Compliance_Comparison import extract_length_compliance_comparison
 from Feature_Extraction.Comparison_Features.Truncation_Comparison import extract_truncation_comparison
 from Feature_Extraction.Comparison_Features.Emoji_Count_Comparison import extract_emoji_count_comparison
+from Feature_Extraction.Comparison_Features.Has_Latex_Comparison import extract_has_latex_comparison
 
 
 # -------------------------------------------------
@@ -250,6 +251,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_emoji_count_comparison(
                 row["a_emoji_count"], row["b_emoji_count"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    has_latex_columns = ["a_has_latex", "b_has_latex"]
+
+    if all(col in df.columns for col in has_latex_columns):
+        comparison_features = df.apply(
+            lambda row: extract_has_latex_comparison(
+                row["a_has_latex"], row["b_has_latex"]
             ),
             axis=1,
         ).apply(pd.Series)
