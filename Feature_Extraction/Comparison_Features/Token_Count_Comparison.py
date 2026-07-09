@@ -42,9 +42,10 @@ def extract_token_count_comparison(a_token_count: Any, b_token_count: Any) -> di
 
     Returns:
         {
-            "token_count_diff": float,      # a - b
-            "token_count_ratio": float,     # a / (b + epsilon)
-            "token_count_a_gt_b": bool,     # a > b
+            "token_count_diff": float,           # a - b
+            "token_count_ratio": float,          # a / (b + epsilon)
+            "token_count_a_gt_b": bool,          # a > b
+            "token_count_gap_magnitude": float,  # |a - b|
         }
     """
 
@@ -55,6 +56,7 @@ def extract_token_count_comparison(a_token_count: Any, b_token_count: Any) -> di
         "token_count_diff": a - b,
         "token_count_ratio": a / (b + EPSILON),
         "token_count_a_gt_b": a > b,
+        "token_count_gap_magnitude": abs(a - b),
     }
 
 
