@@ -13,6 +13,7 @@ from Feature_Extraction.Comparison_Features.Prompt_Script_Match_Comparison impor
 from Feature_Extraction.Comparison_Features.Refusal_Comparison import extract_refusal_comparison
 from Feature_Extraction.Comparison_Features.Near_Empty_Comparison import extract_near_empty_comparison
 from Feature_Extraction.Comparison_Features.Format_Compliance_Comparison import extract_format_compliance_comparison
+from Feature_Extraction.Comparison_Features.Length_Compliance_Comparison import extract_length_compliance_comparison
 
 
 # -------------------------------------------------
@@ -205,6 +206,24 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
                 b_has_table=row["b_has_table"],
                 b_has_json=row["b_has_json"],
                 b_is_code_block=row["b_is_code_block"],
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    length_compliance_columns = [
+        "prompt_requests_brief", "prompt_requests_detailed",
+        "a_word_count", "b_word_count",
+    ]
+
+    if all(col in df.columns for col in length_compliance_columns):
+        comparison_features = df.apply(
+            lambda row: extract_length_compliance_comparison(
+                requests_brief=row["prompt_requests_brief"],
+                requests_detailed=row["prompt_requests_detailed"],
+                a_word_count=row["a_word_count"],
+                b_word_count=row["b_word_count"],
             ),
             axis=1,
         ).apply(pd.Series)

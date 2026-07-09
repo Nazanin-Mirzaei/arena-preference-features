@@ -27,6 +27,7 @@ from Feature_Extraction.Text_Features.List_Detection import detect_list, count_l
 from Feature_Extraction.Text_Features.Json_Detection import has_json
 from Feature_Extraction.Text_Features.Writing_Style_Features import extract_writing_style_features
 from Feature_Extraction.Text_Features.Format_Request_Detection import extract_format_request_features
+from Feature_Extraction.Text_Features.Length_Request_Detection import extract_length_request_features
 
 
 # -------------------------------------------------
@@ -119,6 +120,16 @@ def run_all_Text_Features(df: pd.DataFrame) -> pd.DataFrame:
         .add_prefix("prompt_")
     )
 
+    # User prompt length-request features (prompt-only: infers whether
+    # a brief or detailed response was asked for, not applicable to
+    # responses)
+    prompt_length_request_features = (
+        df["user_prompt"]
+        .apply(extract_length_request_features)
+        .apply(pd.Series)
+        .add_prefix("prompt_")
+    )
+
     # Response A features
     response_a_features = (
         df["response_a"]
@@ -140,6 +151,7 @@ def run_all_Text_Features(df: pd.DataFrame) -> pd.DataFrame:
             df,
             prompt_features,
             prompt_format_request_features,
+            prompt_length_request_features,
             response_a_features,
             response_b_features
         ],
