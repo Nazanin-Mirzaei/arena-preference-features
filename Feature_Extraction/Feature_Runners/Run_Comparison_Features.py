@@ -28,6 +28,7 @@ from Feature_Extraction.Comparison_Features.Is_Detailed_Comparison import extrac
 from Feature_Extraction.Comparison_Features.Has_Step_By_Step_Comparison import extract_has_step_by_step_comparison
 from Feature_Extraction.Comparison_Features.Is_Natural_Text_Comparison import extract_is_natural_text_comparison
 from Feature_Extraction.Comparison_Features.Has_Conclusion_Comparison import extract_has_conclusion_comparison
+from Feature_Extraction.Comparison_Features.Has_Next_Steps_Comparison import extract_has_next_steps_comparison
 
 
 # -------------------------------------------------
@@ -406,6 +407,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_has_conclusion_comparison(
                 row["a_has_conclusion"], row["b_has_conclusion"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    has_next_steps_columns = ["a_has_next_steps", "b_has_next_steps"]
+
+    if all(col in df.columns for col in has_next_steps_columns):
+        comparison_features = df.apply(
+            lambda row: extract_has_next_steps_comparison(
+                row["a_has_next_steps"], row["b_has_next_steps"]
             ),
             axis=1,
         ).apply(pd.Series)
