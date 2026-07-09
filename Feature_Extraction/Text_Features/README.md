@@ -2,11 +2,11 @@
 
 ## Overview
 
-This module provides a **comprehensive library of lightweight feature extractors** for analyzing raw LLM-generated text inputs. Each extractor operates on a single text input and returns interpretable, ML-ready features capturing structural, linguistic, stylistic, and formatting properties.
+This module provides a **comprehensive library of lightweight feature extractors** for analyzing raw LLM-generated text inputs. Each extractor operates on a single text input and returns interpretable, ML-ready features capturing structural, linguistic, stylistic, formatting, and quality/failure properties.
 
 The same feature extraction framework can be applied to different text sources, including user prompts and model-generated responses.
 
-Designed for large-scale evaluation pipelines, these features enable prompt-response analysis, pairwise response comparison (A/B), behavioral profiling, and supervised preference modeling without requiring heavy NLP infrastructure.
+Designed for large-scale evaluation pipelines, these features enable prompt-response analysis, pairwise response comparison (A/B), behavioral profiling, format-compliance checking, and supervised preference modeling without requiring heavy NLP infrastructure.
 
 ---
 
@@ -18,20 +18,28 @@ Text_Features/
 │
 ├── Code_Delimiter_Count.py       # Code delimiter frequency
 ├── Emoji_Features.py             # Emoji presence and count
+├── Format_Request_Detection.py   # Prompt-side requested output format (list/table/json/code)
 ├── Has_Latex.py                  # LaTeX / mathematical expression detection
 ├── Interaction_Features.py       # Conversational and instructional interaction signals
 ├── Is_Code_Block.py              # Code block and programming syntax detection
 ├── Is_Natural_Text.py            # Natural language vs. code classification
+├── Json_Detection.py             # JSON object/array detection
+├── Length_Request_Detection.py   # Prompt-side requested response length (brief/detailed)
+├── List_Detection.py             # Markdown list detection and item count
+├── Near_Empty_Detection.py       # Empty / degenerate response detection
 ├── Paragraph_Count.py            # Paragraph segmentation count
 ├── Paragraph_Statistics.py       # Paragraph length mean and standard deviation
 ├── Punctuation_Count.py          # Punctuation mark frequency
+├── Refusal_Detection.py          # Refusal / apology / inability language detection
 ├── Repetition.py                 # Lexical repetition density
+├── Script_Detection.py           # Dominant Unicode script classification
 ├── Sentence_Count.py             # Sentence count estimation
 ├── Sentence_Length.py            # Short and long sentence classification
 ├── Sentence_Length_Stats.py      # Sentence length standard deviation
 ├── Sentence_Paragraph_Stats.py   # Sentence-per-paragraph dispersion
 ├── Table_Detection.py            # Markdown / HTML table detection and count
 ├── Token_Features.py             # Character-based adaptive token estimation
+├── Truncation_Detection.py       # Cut-off / unfinished response detection
 ├── Writing_Style_Features.py     # Structural style, reasoning, and detail signals
 │
 └── README.md
@@ -66,6 +74,8 @@ The same extractor functions are used for:
 * `response_a`
 * `response_b`
 
+`Format_Request_Detection.py` and `Length_Request_Detection.py` are prompt-only extractors: they infer what the user *asked for*, and are only meaningful against `user_prompt`, not responses.
+
 ---
 
 ## Feature Descriptions
@@ -91,13 +101,28 @@ Counts occurrences of code-related delimiters as a proxy for how code-heavy a te
 Detects and counts emoji characters using an extended Unicode 15.1 pattern covering emoticons, symbols, flags, dingbats, and pictographs.
 
 | Feature      | Type   | Description                                    |
-| ------------ | ------ | ---------------------------------------------- |
+| ------------ | ------ | ----------------------------------------------- |
 | detect_emoji | `bool` | Whether the text contains any emoji characters |
 | count_emojis | `int`  | Total number of emoji occurrences              |
 
 ---
 
-### 3. LaTeX Detection (`Has_Latex.py`)
+### 3. Format Request Detection (`Format_Request_Detection.py`)
+
+**Function:** `extract_format_request_features(text) -> dict`
+
+Infers which output format(s) a user prompt explicitly requests, using regex heuristics. Used to later check whether a response's actual format (`Is_Code_Block`, `Table_Detection`, `List_Detection`, `Json_Detection`) complies with what was asked for. **Prompt-only** — not meaningful on responses.
+
+| Feature            | Type   | Description                                                             |
+| ------------------- | ------ | ------------------------------------------------------------------------ |
+| `requests_list`     | `bool` | Prompt asks for a bulleted/numbered list ("as a list", "enumerate")     |
+| `requests_table`    | `bool` | Prompt asks for tabular output ("as a table", "tabulate")               |
+| `requests_json`     | `bool` | Prompt asks for JSON output ("in json", "return json")                  |
+| `requests_code`     | `bool` | Prompt asks for code ("write a function", "implement ... in Python")    |
+
+---
+
+### 4. LaTeX Detection (`Has_Latex.py`)
 
 **Function:** `has_latex(text) -> bool`
 
@@ -109,14 +134,14 @@ Detects the presence of LaTeX or mathematical notation using regex heuristics.
 
 ---
 
-### 4. Interaction Features (`Interaction_Features.py`)
+### 5. Interaction Features (`Interaction_Features.py`)
 
 **Function:** `extract_interaction_features(text) -> dict`
 
 Captures conversational and instructional interaction patterns through lexical indicators of discourse structure.
 
 | Feature                  | Type   | Description                                                            |
-| ------------------------ | ------ | ---------------------------------------------------------------------- |
+| ------------------------ | ------ | ------------------------------------------------------------------------ |
 | `has_question_at_end`    | `bool` | Text ends with a question mark                                         |
 | `has_conclusion`         | `bool` | Contains conclusive phrases (e.g., "in conclusion", "therefore")       |
 | `has_next_steps`         | `bool` | Contains forward-looking phrases (e.g., "next steps", "going forward") |
@@ -125,19 +150,19 @@ Captures conversational and instructional interaction patterns through lexical i
 
 ---
 
-### 5. Code Block Detection (`Is_Code_Block.py`)
+### 6. Code Block Detection (`Is_Code_Block.py`)
 
 **Function:** `is_code_block(text) -> bool`
 
 Determines whether a text input contains code-like content through multi-signal detection.
 
 | Feature | Type   | Description                                                                                                                |
-| ------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | return  | `bool` | `True` if text contains fenced code blocks, inline backtick code, HTML code tags, or heuristic programming syntax patterns |
 
 ---
 
-### 6. Natural Text Classification (`Is_Natural_Text.py`)
+### 7. Natural Text Classification (`Is_Natural_Text.py`)
 
 **Function:** `is_natural_text(text) -> bool`
 
@@ -156,7 +181,65 @@ Decision criteria include:
 
 ---
 
-### 7. Paragraph Count (`Paragraph_Count.py`)
+### 8. JSON Detection (`Json_Detection.py`)
+
+**Function:** `has_json(text) -> bool`
+
+Detects whether text contains a JSON object/array, either fenced in a ` ```json ` code block or as raw brace/bracket-delimited text that parses successfully. Used to check format compliance when a prompt explicitly requests JSON output.
+
+| Feature | Type   | Description                                                                       |
+| ------- | ------ | ------------------------------------------------------------------------------------ |
+| return  | `bool` | `True` if a fenced or raw JSON object/array is present and parses to a dict/list |
+
+A bare string, number, or boolean parses as valid JSON but does not count — only structured objects/arrays qualify.
+
+---
+
+### 9. Length Request Detection (`Length_Request_Detection.py`)
+
+**Function:** `extract_length_request_features(text) -> dict`
+
+Infers whether a user prompt explicitly requests a brief or a detailed response, using regex heuristics. Used to check whether a response's actual length (`Writing_Style_Features.word_count`) complies with what was asked for. **Prompt-only** — not meaningful on responses.
+
+| Feature              | Type   | Description                                                                    |
+| --------------------- | ------ | -------------------------------------------------------------------------------- |
+| `requests_brief`      | `bool` | Prompt asks for brevity ("briefly", "tl;dr", "in one sentence")                |
+| `requests_detailed`   | `bool` | Prompt asks for depth ("in detail", "comprehensive", "walk me through")        |
+
+The two flags are independent booleans (not mutually exclusive) since a prompt can, in noisy real-world data, contain contradictory or overlapping phrasing.
+
+---
+
+### 10. List Detection (`List_Detection.py`)
+
+**Functions:**
+`detect_list(text) -> bool`
+`count_list_items(text) -> int`
+
+Detects Markdown-style ordered and unordered list items via line-prefix heuristics. Independent of the dataset-provided `conv_metadata` list counts (see `Metadata_Features/Lists.py`), so it can be applied directly to raw text such as `user_prompt`, where no metadata list counts exist.
+
+| Feature           | Type   | Description                                                     |
+| ------------------ | ------ | ------------------------------------------------------------------ |
+| `detect_list`      | `bool` | Whether text contains at least one Markdown list item line       |
+| `count_list_items` | `int`  | Total number of ordered + unordered list item lines              |
+
+---
+
+### 11. Near-Empty Detection (`Near_Empty_Detection.py`)
+
+**Function:** `is_near_empty(text, word_count_threshold=3, char_count_threshold=10) -> bool`
+
+Detects empty, whitespace-only, or degenerate responses reduced to a handful of words — a strong quality/loser signal independent of content correctness, typically indicating a truncated or failed generation rather than a legitimately terse answer.
+
+| Feature | Type   | Description                                                                                                                          |
+| ------- | ------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| return  | `bool` | `True` if text is empty/whitespace-only, has no alphanumeric content, or falls at/below both the word- and character-count thresholds |
+
+Requiring both thresholds avoids misclassifying legitimately short but complete answers (a single long word, a short numeric answer) as near-empty.
+
+---
+
+### 12. Paragraph Count (`Paragraph_Count.py`)
 
 **Function:** `extract_paragraph_features(text) -> dict`
 
@@ -168,7 +251,7 @@ Segments text by double-newline boundaries and counts non-empty paragraphs.
 
 ---
 
-### 8. Paragraph Statistics (`Paragraph_Statistics.py`)
+### 13. Paragraph Statistics (`Paragraph_Statistics.py`)
 
 **Function:** `extract_paragraph_statistics(text) -> dict`
 
@@ -181,7 +264,7 @@ Computes paragraph-length distribution statistics using word-count-based paragra
 
 ---
 
-### 9. Punctuation Count (`Punctuation_Count.py`)
+### 14. Punctuation Count (`Punctuation_Count.py`)
 
 **Function:** `count_punctuation(text) -> int`
 
@@ -193,7 +276,19 @@ Counts common punctuation marks as a lightweight proxy for writing structure den
 
 ---
 
-### 10. Repetition Density (`Repetition.py`)
+### 15. Refusal Detection (`Refusal_Detection.py`)
+
+**Function:** `has_refusal(text) -> bool`
+
+Detects refusal, apology, or inability-to-comply language in model responses using regex heuristics gated on refusal-object context (to avoid false positives on hedging like "I can't stress enough..."). Refusals are a strong quality signal independent of content correctness — a response that declines the request is a common loser in pairwise human preference, and both sides refusing is a signal for "both_bad" outcomes.
+
+| Feature | Type   | Description                                                                                                                            |
+| ------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| return  | `bool` | `True` if text contains refusal phrasing: inability statements ("I can't help with that"), explicit declines, AI self-identification disclaimers, apology-prefaced refusals, access/permission denial, or policy/comfort framing |
+
+---
+
+### 16. Repetition Density (`Repetition.py`)
 
 **Function:** `compute_repetition_density(text) -> float`
 
@@ -207,7 +302,19 @@ Computed case-insensitively with Unicode-aware word boundaries.
 
 ---
 
-### 11. Sentence Count (`Sentence_Count.py`)
+### 17. Script Detection (`Script_Detection.py`)
+
+**Function:** `detect_script(text) -> str`
+
+Classifies text by dominant Unicode script (writing system) using character-range heuristics. Serves as a cheap, dependency-free fallback for language comparison when full language detection is unavailable, misfires, or returns "unknown" — script mismatches are still a strong signal that a response answered in the wrong language relative to the prompt.
+
+| Feature | Type  | Description                                                                                    |
+| ------- | ----- | -------------------------------------------------------------------------------------------------- |
+| return  | `str` | One of `"arabic"`, `"cjk"`, `"cyrillic"`, `"latin"`, `"other"` — first matching script, checked in that order |
+
+---
+
+### 18. Sentence Count (`Sentence_Count.py`)
 
 **Function:** `count_sentences(text) -> int`
 
@@ -219,7 +326,7 @@ Estimates sentence count by splitting on sentence-ending punctuation and newline
 
 ---
 
-### 12. Sentence Length Features (`Sentence_Length.py`)
+### 19. Sentence Length Features (`Sentence_Length.py`)
 
 **Function:** `extract_sentence_length_features(text) -> dict`
 
@@ -232,7 +339,7 @@ Classifies sentences into short and long categories.
 
 ---
 
-### 13. Sentence Length Standard Deviation (`Sentence_Length_Stats.py`)
+### 20. Sentence Length Standard Deviation (`Sentence_Length_Stats.py`)
 
 **Function:** `compute_sentence_length_std(text) -> float`
 
@@ -244,7 +351,7 @@ Computes the population standard deviation of sentence lengths.
 
 ---
 
-### 14. Sentence-Per-Paragraph Dispersion (`Sentence_Paragraph_Stats.py`)
+### 21. Sentence-Per-Paragraph Dispersion (`Sentence_Paragraph_Stats.py`)
 
 **Function:** `compute_sentence_per_paragraph_std(text) -> float`
 
@@ -256,7 +363,7 @@ Computes the population standard deviation of sentence counts across paragraphs.
 
 ---
 
-### 15. Table Detection (`Table_Detection.py`)
+### 22. Table Detection (`Table_Detection.py`)
 
 **Functions:**
 
@@ -268,13 +375,13 @@ count_tables(text) -> int
 Detects and counts structured tabular content in Markdown and HTML formats.
 
 | Feature         | Type   | Description                                             |
-| --------------- | ------ | ------------------------------------------------------- |
+| --------------- | ------ | --------------------------------------------------------- |
 | `detect_tables` | `bool` | Whether any Markdown or HTML table structure is present |
 | `count_tables`  | `int`  | Total number of detected table structures               |
 
 ---
 
-### 16. Token Features (`Token_Features.py`)
+### 23. Token Features (`Token_Features.py`)
 
 **Function:** `count_tokens(text, average_chars_per_token=4) -> int`
 
@@ -283,7 +390,7 @@ Provides adaptive token count estimation without external tokenizers.
 The estimator uses language-group-specific character-to-token ratios.
 
 | Feature | Type  | Description                                |
-| ------- | ----- | ------------------------------------------ |
+| ------- | ----- | ------------------------------------------- |
 | return  | `int` | Estimated token count (rounded, minimum 1) |
 
 Character-to-token ratios:
@@ -295,14 +402,28 @@ Character-to-token ratios:
 
 ---
 
-### 17. Writing Style Features (`Writing_Style_Features.py`)
+### 24. Truncation Detection (`Truncation_Detection.py`)
+
+**Function:** `is_truncated(text) -> bool`
+
+Detects responses that appear cut off before completion — distinct from near-emptiness, since a long, otherwise-substantive answer can still be truncated (unclosed code fence, sentence stopped mid-word). Detection is deliberately conservative to avoid flagging legitimately complete responses that don't end in a period (code blocks, tables, lists, headers, questions).
+
+| Feature | Type   | Description                                                                                                                                                           |
+| ------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| return  | `bool` | `True` if the text has an unclosed fenced code block (odd `` ``` ``/`~~~` count), or its final line ends mid-sentence on a plausibly-cut alphabetic word rather than punctuation or a recognized structural line |
+
+Empty/whitespace-only input is not considered truncated (that is near-emptiness, a separate signal — see `Near_Empty_Detection`).
+
+---
+
+### 25. Writing Style Features (`Writing_Style_Features.py`)
 
 **Function:** `extract_writing_style_features(text) -> dict`
 
 Extracts high-level structural and reasoning-related writing style signals.
 
 | Feature                  | Type    | Description                                                                                |
-| ------------------------ | ------- | ------------------------------------------------------------------------------------------ |
+| ------------------------- | ------- | ---------------------------------------------------------------------------------------------- |
 | `word_count`             | `int`   | Whitespace-delimited word count                                                            |
 | `sentence_count`         | `int`   | Sentence count estimated using punctuation splitting                                       |
 | `avg_words_per_sentence` | `float` | Mean words per sentence                                                                    |
@@ -313,14 +434,16 @@ Extracts high-level structural and reasoning-related writing style signals.
 
 ## Category Summary
 
-| Category                    | Modules                                                                                                                             |
-| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| **Structural**              | `Paragraph_Count`, `Paragraph_Statistics`, `Sentence_Count`, `Sentence_Length`, `Sentence_Length_Stats`, `Sentence_Paragraph_Stats` |
-| **Code & Technical**        | `Code_Delimiter_Count`, `Is_Code_Block`, `Table_Detection`, `Has_Latex`                                                             |
-| **Linguistic & Lexical**    | `Repetition`, `Token_Features`, `Is_Natural_Text`                                                                                   |
-| **Stylistic**               | `Writing_Style_Features`, `Sentence_Length`, `Sentence_Length_Stats`, `Paragraph_Statistics`, `Punctuation_Count`                   |
-| **Discourse & Interaction** | `Interaction_Features`, `Writing_Style_Features`                                                                                    |
-| **Symbolic**                | `Emoji_Features`                                                                                                                    |
+| Category                    | Modules                                                                                                                                                |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Structural**               | `Paragraph_Count`, `Paragraph_Statistics`, `Sentence_Count`, `Sentence_Length`, `Sentence_Length_Stats`, `Sentence_Paragraph_Stats`, `List_Detection`      |
+| **Code & Technical**         | `Code_Delimiter_Count`, `Is_Code_Block`, `Table_Detection`, `Has_Latex`, `Json_Detection`                                                                  |
+| **Linguistic & Lexical**     | `Repetition`, `Token_Features`, `Is_Natural_Text`, `Script_Detection`                                                                                      |
+| **Stylistic**                | `Writing_Style_Features`, `Sentence_Length`, `Sentence_Length_Stats`, `Paragraph_Statistics`, `Punctuation_Count`                                          |
+| **Discourse & Interaction**  | `Interaction_Features`, `Writing_Style_Features`                                                                                                            |
+| **Symbolic**                 | `Emoji_Features`                                                                                                                                            |
+| **Format Compliance (prompt)** | `Format_Request_Detection`, `Length_Request_Detection`                                                                                                   |
+| **Quality & Failure Signals** | `Refusal_Detection`, `Near_Empty_Detection`, `Truncation_Detection`                                                                                       |
 
 ---
 
@@ -355,6 +478,40 @@ text = df.loc[0, "response_a"]
 
 interaction = extract_interaction_features(text)
 style = extract_writing_style_features(text)
+```
+
+---
+
+### Quality / Failure Signal Extraction
+
+Refusal, near-emptiness, and truncation are checked directly on model responses.
+
+```python
+from Text_Features.Refusal_Detection import has_refusal
+from Text_Features.Near_Empty_Detection import is_near_empty
+from Text_Features.Truncation_Detection import is_truncated
+
+text = df.loc[0, "response_a"]
+
+refused = has_refusal(text)
+degenerate = is_near_empty(text)
+cut_off = is_truncated(text)
+```
+
+---
+
+### Prompt-Only Format-Compliance Extraction
+
+Format and length requests are inferred from the prompt, then compared against actual response formatting/length.
+
+```python
+from Text_Features.Format_Request_Detection import extract_format_request_features
+from Text_Features.Length_Request_Detection import extract_length_request_features
+
+prompt = df.loc[0, "user_prompt"]
+
+format_request = extract_format_request_features(prompt)
+length_request = extract_length_request_features(prompt)
 ```
 
 ---
@@ -401,7 +558,7 @@ The runner automatically extracts features from:
 * `response_a`
 * `response_b`
 
-and generates separate prefixed feature groups.
+and generates separate prefixed feature groups. It additionally attaches `primary_language` and `is_multilingual` (via `Language_Detection.api`) alongside `script` (via `Script_Detection`) for each source. The prompt-only `Format_Request_Detection` and `Length_Request_Detection` outputs are computed once, against `user_prompt`, and prefixed `prompt_` — they have no `a_`/`b_` counterparts.
 
 ---
 
@@ -430,9 +587,9 @@ Examples:
 ```
 prompt_primary_language
 prompt_is_multilingual
+prompt_script
 prompt_code_delimiters
 prompt_punctuation_count
-prompt_sentence_count
 prompt_has_latex
 prompt_has_emoji
 prompt_emoji_count
@@ -440,8 +597,12 @@ prompt_token_count
 prompt_repetition_density
 prompt_is_code_block
 prompt_is_natural_text
+prompt_sentence_count
 prompt_has_table
 prompt_table_count
+prompt_has_list
+prompt_list_item_count
+prompt_has_json
 prompt_paragraph_count
 prompt_paragraph_length_mean
 prompt_paragraph_length_std
@@ -458,6 +619,15 @@ prompt_word_count
 prompt_avg_words_per_sentence
 prompt_is_detailed
 prompt_has_step_by_step
+prompt_has_refusal
+prompt_is_near_empty
+prompt_is_truncated
+prompt_requests_list
+prompt_requests_table
+prompt_requests_json
+prompt_requests_code
+prompt_requests_brief
+prompt_requests_detailed
 ```
 
 ---
@@ -469,9 +639,9 @@ Examples:
 ```
 a_primary_language
 a_is_multilingual
+a_script
 a_code_delimiters
 a_punctuation_count
-a_sentence_count
 a_has_latex
 a_has_emoji
 a_emoji_count
@@ -479,8 +649,12 @@ a_token_count
 a_repetition_density
 a_is_code_block
 a_is_natural_text
+a_sentence_count
 a_has_table
 a_table_count
+a_has_list
+a_list_item_count
+a_has_json
 a_paragraph_count
 a_paragraph_length_mean
 a_paragraph_length_std
@@ -497,7 +671,12 @@ a_word_count
 a_avg_words_per_sentence
 a_is_detailed
 a_has_step_by_step
+a_has_refusal
+a_is_near_empty
+a_is_truncated
 ```
+
+`a_` has no `requests_*` fields — those are prompt-only.
 
 ---
 
@@ -508,9 +687,9 @@ Response B follows the identical schema:
 ```
 b_primary_language
 b_is_multilingual
+b_script
 b_code_delimiters
 b_punctuation_count
-b_sentence_count
 b_has_latex
 b_has_emoji
 b_emoji_count
@@ -518,8 +697,15 @@ b_token_count
 b_repetition_density
 b_is_code_block
 b_is_natural_text
+b_sentence_count
 b_has_table
 b_table_count
+b_has_list
+b_list_item_count
+b_has_json
+b_has_refusal
+b_is_near_empty
+b_is_truncated
 ...
 ```
 
@@ -533,6 +719,7 @@ All extractors rely primarily on lightweight Python libraries:
 
 * `re`
 * `math`
+* `json`
 * `typing`
 * standard Python utilities
 
@@ -586,7 +773,7 @@ The same feature extractor can analyze:
 * generated summaries
 * other textual artifacts
 
-Only the output prefix changes according to the input source.
+Only the output prefix changes according to the input source, with the exception of the two prompt-only format-compliance extractors (`Format_Request_Detection`, `Length_Request_Detection`), which are semantically meaningful only against `user_prompt`.
 
 ---
 
@@ -649,6 +836,21 @@ prompt_*  →  b_*
 
 ---
 
+## Format & Length Compliance Checking
+
+Compare what a prompt explicitly requested against what a response actually delivered:
+
+```
+prompt_requests_code    →  a_is_code_block / b_is_code_block
+prompt_requests_table   →  a_has_table / b_has_table
+prompt_requests_list    →  a_has_list / b_has_list
+prompt_requests_json    →  a_has_json / b_has_json
+prompt_requests_brief   →  a_word_count / b_word_count
+prompt_requests_detailed → a_word_count / b_word_count
+```
+
+---
+
 ## Behavioral Profiling
 
 Characterize LLM outputs according to:
@@ -662,6 +864,16 @@ Characterize LLM outputs according to:
 
 ---
 
+## Failure / Quality Signal Detection
+
+Flag responses that are likely losers in pairwise comparison independent of content correctness:
+
+* `has_refusal` — the model declined the request
+* `is_near_empty` — the response is empty or degenerate
+* `is_truncated` — the response was cut off before completion
+
+---
+
 ## Reward Model Feature Engineering
 
 Provide interpretable signals for preference models and reward modeling pipelines.
@@ -672,6 +884,8 @@ Examples:
 * structural complexity difference
 * interaction score difference
 * formatting preference signals
+* format/length compliance signals
+* refusal / truncation / near-empty signals
 
 ---
 
@@ -680,6 +894,9 @@ Examples:
 * Token counts are heuristic estimates based on character-to-token ratios calibrated by script groups and are not exact tokenizer outputs.
 * Sentence and paragraph segmentation rely on regex-based heuristics and may differ from linguistic parsers in edge cases.
 * Language detection in token estimation is script-based and does not represent full semantic language identification.
+* `Script_Detection` is a lightweight Unicode-range heuristic intended as a fallback signal alongside full language detection (`Language_Detection.api`), not a replacement for it.
 * Regex-based detectors prioritize speed and interpretability over exhaustive linguistic coverage.
+* `Refusal_Detection`, `Format_Request_Detection`, and `Length_Request_Detection` gate common phrases on surrounding context (e.g. "I can't" only counts as refusal near a refusal object) to reduce false positives from hedging or code-related language.
+* `Truncation_Detection` is deliberately conservative: it will not flag legitimately complete responses that end on code fences, list items, table rows, headings, or terminal punctuation.
 * The feature extraction pipeline operates on copies of DataFrames and does not mutate the original input.
-* The unified runner applies the same feature extraction logic consistently across prompts and responses.
+* The unified runner applies the same feature extraction logic consistently across prompts and responses, except for the prompt-only format-compliance extractors.
