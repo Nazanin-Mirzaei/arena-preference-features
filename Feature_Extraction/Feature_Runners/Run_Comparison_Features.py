@@ -23,6 +23,7 @@ from Feature_Extraction.Comparison_Features.Avg_Words_Per_Sentence_Comparison im
 from Feature_Extraction.Comparison_Features.Sentence_Length_Std_Comparison import extract_sentence_length_std_comparison
 from Feature_Extraction.Comparison_Features.Paragraph_Length_Mean_Comparison import extract_paragraph_length_mean_comparison
 from Feature_Extraction.Comparison_Features.Paragraph_Length_Std_Comparison import extract_paragraph_length_std_comparison
+from Feature_Extraction.Comparison_Features.Interaction_Score_Comparison import extract_interaction_score_comparison
 
 
 # -------------------------------------------------
@@ -341,6 +342,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_paragraph_length_std_comparison(
                 row["a_paragraph_length_std"], row["b_paragraph_length_std"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    interaction_score_columns = ["a_interaction_score", "b_interaction_score"]
+
+    if all(col in df.columns for col in interaction_score_columns):
+        comparison_features = df.apply(
+            lambda row: extract_interaction_score_comparison(
+                row["a_interaction_score"], row["b_interaction_score"]
             ),
             axis=1,
         ).apply(pd.Series)
