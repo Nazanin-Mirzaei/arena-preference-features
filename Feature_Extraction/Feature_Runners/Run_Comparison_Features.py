@@ -25,6 +25,7 @@ from Feature_Extraction.Comparison_Features.Paragraph_Length_Mean_Comparison imp
 from Feature_Extraction.Comparison_Features.Paragraph_Length_Std_Comparison import extract_paragraph_length_std_comparison
 from Feature_Extraction.Comparison_Features.Interaction_Score_Comparison import extract_interaction_score_comparison
 from Feature_Extraction.Comparison_Features.Is_Detailed_Comparison import extract_is_detailed_comparison
+from Feature_Extraction.Comparison_Features.Has_Step_By_Step_Comparison import extract_has_step_by_step_comparison
 
 
 # -------------------------------------------------
@@ -367,6 +368,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_is_detailed_comparison(
                 row["a_is_detailed"], row["b_is_detailed"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    has_step_by_step_columns = ["a_has_step_by_step", "b_has_step_by_step"]
+
+    if all(col in df.columns for col in has_step_by_step_columns):
+        comparison_features = df.apply(
+            lambda row: extract_has_step_by_step_comparison(
+                row["a_has_step_by_step"], row["b_has_step_by_step"]
             ),
             axis=1,
         ).apply(pd.Series)
