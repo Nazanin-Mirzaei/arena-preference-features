@@ -28,3 +28,7 @@ env/
 .DS_Store
 Thumbs.db
 Desktop.ini
+
+# Data
+*.csv
+sample.csv
