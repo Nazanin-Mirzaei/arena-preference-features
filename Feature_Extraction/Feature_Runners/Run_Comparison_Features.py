@@ -5,6 +5,7 @@ from Feature_Extraction.Comparison_Features.Token_Count_Comparison import extrac
 from Feature_Extraction.Comparison_Features.Sentence_Count_Comparison import extract_sentence_count_comparison
 from Feature_Extraction.Comparison_Features.Paragraph_Count_Comparison import extract_paragraph_count_comparison
 from Feature_Extraction.Comparison_Features.Code_Delimiters_Comparison import extract_code_delimiters_comparison
+from Feature_Extraction.Comparison_Features.Punctuation_Count_Comparison import extract_punctuation_count_comparison
 
 
 # -------------------------------------------------
@@ -67,6 +68,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_code_delimiters_comparison(
                 row["a_code_delimiters"], row["b_code_delimiters"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    punctuation_count_columns = ["a_punctuation_count", "b_punctuation_count"]
+
+    if all(col in df.columns for col in punctuation_count_columns):
+        comparison_features = df.apply(
+            lambda row: extract_punctuation_count_comparison(
+                row["a_punctuation_count"], row["b_punctuation_count"]
             ),
             axis=1,
         ).apply(pd.Series)
