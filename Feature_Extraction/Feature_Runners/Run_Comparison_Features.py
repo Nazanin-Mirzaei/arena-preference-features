@@ -19,6 +19,7 @@ from Feature_Extraction.Comparison_Features.Emoji_Count_Comparison import extrac
 from Feature_Extraction.Comparison_Features.Has_Latex_Comparison import extract_has_latex_comparison
 from Feature_Extraction.Comparison_Features.Table_Count_Comparison import extract_table_count_comparison
 from Feature_Extraction.Comparison_Features.List_Item_Count_Comparison import extract_list_item_count_comparison
+from Feature_Extraction.Comparison_Features.Avg_Words_Per_Sentence_Comparison import extract_avg_words_per_sentence_comparison
 
 
 # -------------------------------------------------
@@ -289,6 +290,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_list_item_count_comparison(
                 row["a_list_item_count"], row["b_list_item_count"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    avg_words_per_sentence_columns = ["a_avg_words_per_sentence", "b_avg_words_per_sentence"]
+
+    if all(col in df.columns for col in avg_words_per_sentence_columns):
+        comparison_features = df.apply(
+            lambda row: extract_avg_words_per_sentence_comparison(
+                row["a_avg_words_per_sentence"], row["b_avg_words_per_sentence"]
             ),
             axis=1,
         ).apply(pd.Series)
