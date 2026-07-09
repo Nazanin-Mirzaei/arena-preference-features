@@ -20,6 +20,7 @@ from Feature_Extraction.Comparison_Features.Has_Latex_Comparison import extract_
 from Feature_Extraction.Comparison_Features.Table_Count_Comparison import extract_table_count_comparison
 from Feature_Extraction.Comparison_Features.List_Item_Count_Comparison import extract_list_item_count_comparison
 from Feature_Extraction.Comparison_Features.Avg_Words_Per_Sentence_Comparison import extract_avg_words_per_sentence_comparison
+from Feature_Extraction.Comparison_Features.Sentence_Length_Std_Comparison import extract_sentence_length_std_comparison
 
 
 # -------------------------------------------------
@@ -302,6 +303,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_avg_words_per_sentence_comparison(
                 row["a_avg_words_per_sentence"], row["b_avg_words_per_sentence"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    sentence_length_std_columns = ["a_sentence_length_std", "b_sentence_length_std"]
+
+    if all(col in df.columns for col in sentence_length_std_columns):
+        comparison_features = df.apply(
+            lambda row: extract_sentence_length_std_comparison(
+                row["a_sentence_length_std"], row["b_sentence_length_std"]
             ),
             axis=1,
         ).apply(pd.Series)

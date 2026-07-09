@@ -103,9 +103,7 @@ def compute_sentence_length_std(text: Any) -> float:
         for length in sentence_lengths
     ) / len(sentence_lengths)
 
-    return {
-        "sentence_length_std": float(math.sqrt(variance))
-    }
+    return float(math.sqrt(variance))
 
 
 __all__ = ["compute_sentence_length_std"]
