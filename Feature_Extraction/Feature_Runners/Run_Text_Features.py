@@ -6,6 +6,7 @@ from Language_Detection.api import detectMultiLanguage
 from Feature_Extraction.Text_Features.Script_Detection import detect_script
 
 from Feature_Extraction.Text_Features.Interaction_Features import extract_interaction_features
+from Feature_Extraction.Text_Features.Refusal_Detection import has_refusal
 from Feature_Extraction.Text_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Text_Features.Code_Delimiter_Count import count_code_delimiters
 from Feature_Extraction.Text_Features.Punctuation_Count import count_punctuation
@@ -77,6 +78,9 @@ def extract_all_Text_Features(text: str) -> dict:
     # Style and interaction features
     safe_update(features, extract_interaction_features(text))
     safe_update(features, extract_writing_style_features(text))
+
+    # Refusal / failure features
+    features["has_refusal"] = has_refusal(text)
 
     return features
 

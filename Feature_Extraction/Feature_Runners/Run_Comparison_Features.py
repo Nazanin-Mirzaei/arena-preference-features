@@ -10,6 +10,7 @@ from Feature_Extraction.Comparison_Features.Repetition_Density_Comparison import
 from Feature_Extraction.Comparison_Features.Format_Richness_Comparison import extract_format_richness_comparison
 from Feature_Extraction.Comparison_Features.Prompt_Language_Match_Comparison import extract_prompt_language_match_comparison
 from Feature_Extraction.Comparison_Features.Prompt_Script_Match_Comparison import extract_prompt_script_match_comparison
+from Feature_Extraction.Comparison_Features.Refusal_Comparison import extract_refusal_comparison
 
 
 # -------------------------------------------------
@@ -151,6 +152,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
                 row["prompt_script"],
                 row["a_script"],
                 row["b_script"],
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    refusal_columns = ["a_has_refusal", "b_has_refusal"]
+
+    if all(col in df.columns for col in refusal_columns):
+        comparison_features = df.apply(
+            lambda row: extract_refusal_comparison(
+                row["a_has_refusal"], row["b_has_refusal"]
             ),
             axis=1,
         ).apply(pd.Series)
