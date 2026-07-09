@@ -6,6 +6,7 @@ from Feature_Extraction.Comparison_Features.Sentence_Count_Comparison import ext
 from Feature_Extraction.Comparison_Features.Paragraph_Count_Comparison import extract_paragraph_count_comparison
 from Feature_Extraction.Comparison_Features.Code_Delimiters_Comparison import extract_code_delimiters_comparison
 from Feature_Extraction.Comparison_Features.Punctuation_Count_Comparison import extract_punctuation_count_comparison
+from Feature_Extraction.Comparison_Features.Repetition_Density_Comparison import extract_repetition_density_comparison
 
 
 # -------------------------------------------------
@@ -80,6 +81,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_punctuation_count_comparison(
                 row["a_punctuation_count"], row["b_punctuation_count"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    repetition_density_columns = ["a_repetition_density", "b_repetition_density"]
+
+    if all(col in df.columns for col in repetition_density_columns):
+        comparison_features = df.apply(
+            lambda row: extract_repetition_density_comparison(
+                row["a_repetition_density"], row["b_repetition_density"]
             ),
             axis=1,
         ).apply(pd.Series)
