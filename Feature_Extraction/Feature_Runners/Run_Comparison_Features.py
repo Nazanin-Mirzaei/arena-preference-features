@@ -11,6 +11,7 @@ from Feature_Extraction.Comparison_Features.Format_Richness_Comparison import ex
 from Feature_Extraction.Comparison_Features.Prompt_Language_Match_Comparison import extract_prompt_language_match_comparison
 from Feature_Extraction.Comparison_Features.Prompt_Script_Match_Comparison import extract_prompt_script_match_comparison
 from Feature_Extraction.Comparison_Features.Refusal_Comparison import extract_refusal_comparison
+from Feature_Extraction.Comparison_Features.Near_Empty_Comparison import extract_near_empty_comparison
 
 
 # -------------------------------------------------
@@ -164,6 +165,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_refusal_comparison(
                 row["a_has_refusal"], row["b_has_refusal"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    near_empty_columns = ["a_is_near_empty", "b_is_near_empty"]
+
+    if all(col in df.columns for col in near_empty_columns):
+        comparison_features = df.apply(
+            lambda row: extract_near_empty_comparison(
+                row["a_is_near_empty"], row["b_is_near_empty"]
             ),
             axis=1,
         ).apply(pd.Series)
