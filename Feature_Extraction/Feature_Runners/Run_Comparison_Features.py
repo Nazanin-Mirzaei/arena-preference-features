@@ -31,6 +31,7 @@ from Feature_Extraction.Comparison_Features.Has_Conclusion_Comparison import ext
 from Feature_Extraction.Comparison_Features.Has_Next_Steps_Comparison import extract_has_next_steps_comparison
 from Feature_Extraction.Comparison_Features.Has_Question_At_End_Comparison import extract_has_question_at_end_comparison
 from Feature_Extraction.Comparison_Features.Has_Interaction_Prompt_Comparison import extract_has_interaction_prompt_comparison
+from Feature_Extraction.Comparison_Features.Long_Sentence_Count_Comparison import extract_long_sentence_count_comparison
 
 
 # -------------------------------------------------
@@ -445,6 +446,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_has_interaction_prompt_comparison(
                 row["a_has_interaction_prompt"], row["b_has_interaction_prompt"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    long_sentence_count_columns = ["a_long_sentence_count", "b_long_sentence_count"]
+
+    if all(col in df.columns for col in long_sentence_count_columns):
+        comparison_features = df.apply(
+            lambda row: extract_long_sentence_count_comparison(
+                row["a_long_sentence_count"], row["b_long_sentence_count"]
             ),
             axis=1,
         ).apply(pd.Series)
