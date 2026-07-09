@@ -33,6 +33,7 @@ from Feature_Extraction.Comparison_Features.Has_Question_At_End_Comparison impor
 from Feature_Extraction.Comparison_Features.Has_Interaction_Prompt_Comparison import extract_has_interaction_prompt_comparison
 from Feature_Extraction.Comparison_Features.Long_Sentence_Count_Comparison import extract_long_sentence_count_comparison
 from Feature_Extraction.Comparison_Features.Short_Sentence_Count_Comparison import extract_short_sentence_count_comparison
+from Feature_Extraction.Comparison_Features.Is_Multilingual_Comparison import extract_is_multilingual_comparison
 
 
 # -------------------------------------------------
@@ -471,6 +472,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_short_sentence_count_comparison(
                 row["a_short_sentence_count"], row["b_short_sentence_count"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    is_multilingual_columns = ["a_is_multilingual", "b_is_multilingual"]
+
+    if all(col in df.columns for col in is_multilingual_columns):
+        comparison_features = df.apply(
+            lambda row: extract_is_multilingual_comparison(
+                row["a_is_multilingual"], row["b_is_multilingual"]
             ),
             axis=1,
         ).apply(pd.Series)
