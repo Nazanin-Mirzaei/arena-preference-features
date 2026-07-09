@@ -17,6 +17,7 @@ from Feature_Extraction.Comparison_Features.Length_Compliance_Comparison import 
 from Feature_Extraction.Comparison_Features.Truncation_Comparison import extract_truncation_comparison
 from Feature_Extraction.Comparison_Features.Emoji_Count_Comparison import extract_emoji_count_comparison
 from Feature_Extraction.Comparison_Features.Has_Latex_Comparison import extract_has_latex_comparison
+from Feature_Extraction.Comparison_Features.Table_Count_Comparison import extract_table_count_comparison
 
 
 # -------------------------------------------------
@@ -263,6 +264,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_has_latex_comparison(
                 row["a_has_latex"], row["b_has_latex"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    table_count_columns = ["a_table_count", "b_table_count"]
+
+    if all(col in df.columns for col in table_count_columns):
+        comparison_features = df.apply(
+            lambda row: extract_table_count_comparison(
+                row["a_table_count"], row["b_table_count"]
             ),
             axis=1,
         ).apply(pd.Series)
