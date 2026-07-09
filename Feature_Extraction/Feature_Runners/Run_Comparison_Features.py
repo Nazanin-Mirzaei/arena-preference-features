@@ -4,6 +4,7 @@ from Feature_Extraction.Comparison_Features.Word_Count_Comparison import extract
 from Feature_Extraction.Comparison_Features.Token_Count_Comparison import extract_token_count_comparison
 from Feature_Extraction.Comparison_Features.Sentence_Count_Comparison import extract_sentence_count_comparison
 from Feature_Extraction.Comparison_Features.Paragraph_Count_Comparison import extract_paragraph_count_comparison
+from Feature_Extraction.Comparison_Features.Code_Delimiters_Comparison import extract_code_delimiters_comparison
 
 
 # -------------------------------------------------
@@ -54,6 +55,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_paragraph_count_comparison(
                 row["a_paragraph_count"], row["b_paragraph_count"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    code_delimiters_columns = ["a_code_delimiters", "b_code_delimiters"]
+
+    if all(col in df.columns for col in code_delimiters_columns):
+        comparison_features = df.apply(
+            lambda row: extract_code_delimiters_comparison(
+                row["a_code_delimiters"], row["b_code_delimiters"]
             ),
             axis=1,
         ).apply(pd.Series)
