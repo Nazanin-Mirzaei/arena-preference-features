@@ -65,23 +65,23 @@ def extract_sentence_length_features(text: Any) -> dict[str, int]:
     dict[str, int]
         Dictionary containing:
 
-        - long_sents
-        - short_sents
+        - long_sentence_count
+        - short_sentence_count
     """
 
     # -------------------------
     # Input validation
     # -------------------------
     if _is_nan(text):
-        return {"long_sents": 0, "short_sents": 0}
+        return {"long_sentence_count": 0, "short_sentence_count": 0}
 
     clean_text = str(text).strip()
 
     if not clean_text:
-        return {"long_sents": 0, "short_sents": 0}
+        return {"long_sentence_count": 0, "short_sentence_count": 0}
 
     if clean_text.lower() == "nan":
-        return {"long_sents": 0, "short_sents": 0}
+        return {"long_sentence_count": 0, "short_sentence_count": 0}
 
     # -------------------------
     # Sentence segmentation
