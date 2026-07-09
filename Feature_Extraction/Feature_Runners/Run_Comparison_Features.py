@@ -15,6 +15,7 @@ from Feature_Extraction.Comparison_Features.Near_Empty_Comparison import extract
 from Feature_Extraction.Comparison_Features.Format_Compliance_Comparison import extract_format_compliance_comparison
 from Feature_Extraction.Comparison_Features.Length_Compliance_Comparison import extract_length_compliance_comparison
 from Feature_Extraction.Comparison_Features.Truncation_Comparison import extract_truncation_comparison
+from Feature_Extraction.Comparison_Features.Emoji_Count_Comparison import extract_emoji_count_comparison
 
 
 # -------------------------------------------------
@@ -237,6 +238,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_truncation_comparison(
                 row["a_is_truncated"], row["b_is_truncated"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    emoji_count_columns = ["a_emoji_count", "b_emoji_count"]
+
+    if all(col in df.columns for col in emoji_count_columns):
+        comparison_features = df.apply(
+            lambda row: extract_emoji_count_comparison(
+                row["a_emoji_count"], row["b_emoji_count"]
             ),
             axis=1,
         ).apply(pd.Series)
