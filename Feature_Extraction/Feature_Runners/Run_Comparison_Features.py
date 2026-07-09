@@ -24,6 +24,7 @@ from Feature_Extraction.Comparison_Features.Sentence_Length_Std_Comparison impor
 from Feature_Extraction.Comparison_Features.Paragraph_Length_Mean_Comparison import extract_paragraph_length_mean_comparison
 from Feature_Extraction.Comparison_Features.Paragraph_Length_Std_Comparison import extract_paragraph_length_std_comparison
 from Feature_Extraction.Comparison_Features.Interaction_Score_Comparison import extract_interaction_score_comparison
+from Feature_Extraction.Comparison_Features.Is_Detailed_Comparison import extract_is_detailed_comparison
 
 
 # -------------------------------------------------
@@ -354,6 +355,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_interaction_score_comparison(
                 row["a_interaction_score"], row["b_interaction_score"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    is_detailed_columns = ["a_is_detailed", "b_is_detailed"]
+
+    if all(col in df.columns for col in is_detailed_columns):
+        comparison_features = df.apply(
+            lambda row: extract_is_detailed_comparison(
+                row["a_is_detailed"], row["b_is_detailed"]
             ),
             axis=1,
         ).apply(pd.Series)
