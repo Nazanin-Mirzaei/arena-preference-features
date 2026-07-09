@@ -94,9 +94,7 @@ def compute_sentence_per_paragraph_std(text: Any) -> float:
         for count in sentence_counts
     ) / len(sentence_counts)
 
-    return {
-        "sentence_per_paragraph_std": math.sqrt(variance)
-    }
+    return math.sqrt(variance)
 
 
 __all__ = ["compute_sentence_per_paragraph_std"]
