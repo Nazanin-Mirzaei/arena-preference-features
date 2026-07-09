@@ -3,6 +3,8 @@ import pandas as pd
 from Language_Detection.api import detectLanguage
 from Language_Detection.api import detectMultiLanguage
 
+from Feature_Extraction.Text_Features.Script_Detection import detect_script
+
 from Feature_Extraction.Text_Features.Interaction_Features import extract_interaction_features
 from Feature_Extraction.Text_Features.Is_Code_Block import is_code_block
 from Feature_Extraction.Text_Features.Code_Delimiter_Count import count_code_delimiters
@@ -40,6 +42,7 @@ def extract_all_Text_Features(text: str) -> dict:
     # Language features
     features["primary_language"] = detectLanguage(text)
     features["is_multilingual"] = detectMultiLanguage(text)["is_multi_language"]
+    features["script"] = detect_script(text)
 
     # Code / formatting features
     features["code_delimiters"] = count_code_delimiters(text)

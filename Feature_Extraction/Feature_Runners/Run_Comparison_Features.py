@@ -8,6 +8,8 @@ from Feature_Extraction.Comparison_Features.Code_Delimiters_Comparison import ex
 from Feature_Extraction.Comparison_Features.Punctuation_Count_Comparison import extract_punctuation_count_comparison
 from Feature_Extraction.Comparison_Features.Repetition_Density_Comparison import extract_repetition_density_comparison
 from Feature_Extraction.Comparison_Features.Format_Richness_Comparison import extract_format_richness_comparison
+from Feature_Extraction.Comparison_Features.Prompt_Language_Match_Comparison import extract_prompt_language_match_comparison
+from Feature_Extraction.Comparison_Features.Prompt_Script_Match_Comparison import extract_prompt_script_match_comparison
 
 
 # -------------------------------------------------
@@ -121,6 +123,34 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
                 b_headers=sum(row[f"dataset_b_{col}"] for col in header_level_columns),
                 b_list_items=row["dataset_b_list_ordered"] + row["dataset_b_list_unordered"],
                 b_tables=row["b_table_count"],
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    prompt_lang_match_columns = ["prompt_primary_language", "a_primary_language", "b_primary_language"]
+
+    if all(col in df.columns for col in prompt_lang_match_columns):
+        comparison_features = df.apply(
+            lambda row: extract_prompt_language_match_comparison(
+                row["prompt_primary_language"],
+                row["a_primary_language"],
+                row["b_primary_language"],
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    prompt_script_match_columns = ["prompt_script", "a_script", "b_script"]
+
+    if all(col in df.columns for col in prompt_script_match_columns):
+        comparison_features = df.apply(
+            lambda row: extract_prompt_script_match_comparison(
+                row["prompt_script"],
+                row["a_script"],
+                row["b_script"],
             ),
             axis=1,
         ).apply(pd.Series)
