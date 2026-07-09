@@ -57,22 +57,22 @@ def extract_paragraph_statistics(text: Any) -> dict[str, float]:
     # -------------------------
     if _is_nan(text):
         return {
-            "mean_paragraph_length": 0.0,
-            "sd_paragraph_length": 0.0,
+            "paragraph_length_mean": 0.0,
+            "paragraph_length_std": 0.0,
         }
 
     clean_text = str(text).strip()
 
     if not clean_text:
         return {
-            "mean_paragraph_length": 0.0,
-            "sd_paragraph_length": 0.0,
+            "paragraph_length_mean": 0.0,
+            "paragraph_length_std": 0.0,
         }
 
     if clean_text.lower() == "nan":
         return {
-            "mean_paragraph_length": 0.0,
-            "sd_paragraph_length": 0.0,
+            "paragraph_length_mean": 0.0,
+            "paragraph_length_std": 0.0,
         }
 
     # -------------------------
@@ -94,8 +94,8 @@ def extract_paragraph_statistics(text: Any) -> dict[str, float]:
 
     if not paragraph_lengths:
         return {
-            "mean_paragraph_length": 0.0,
-            "sd_paragraph_length": 0.0,
+            "paragraph_length_mean": 0.0,
+            "paragraph_length_std": 0.0,
         }
 
     # -------------------------
