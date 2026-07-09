@@ -12,6 +12,7 @@ from Feature_Extraction.Comparison_Features.Prompt_Language_Match_Comparison imp
 from Feature_Extraction.Comparison_Features.Prompt_Script_Match_Comparison import extract_prompt_script_match_comparison
 from Feature_Extraction.Comparison_Features.Refusal_Comparison import extract_refusal_comparison
 from Feature_Extraction.Comparison_Features.Near_Empty_Comparison import extract_near_empty_comparison
+from Feature_Extraction.Comparison_Features.Format_Compliance_Comparison import extract_format_compliance_comparison
 
 
 # -------------------------------------------------
@@ -177,6 +178,33 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_near_empty_comparison(
                 row["a_is_near_empty"], row["b_is_near_empty"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    format_compliance_columns = [
+        "prompt_requests_list", "prompt_requests_table", "prompt_requests_json", "prompt_requests_code",
+        "a_has_list", "a_has_table", "a_has_json", "a_is_code_block",
+        "b_has_list", "b_has_table", "b_has_json", "b_is_code_block",
+    ]
+
+    if all(col in df.columns for col in format_compliance_columns):
+        comparison_features = df.apply(
+            lambda row: extract_format_compliance_comparison(
+                requests_list=row["prompt_requests_list"],
+                requests_table=row["prompt_requests_table"],
+                requests_json=row["prompt_requests_json"],
+                requests_code=row["prompt_requests_code"],
+                a_has_list=row["a_has_list"],
+                a_has_table=row["a_has_table"],
+                a_has_json=row["a_has_json"],
+                a_is_code_block=row["a_is_code_block"],
+                b_has_list=row["b_has_list"],
+                b_has_table=row["b_has_table"],
+                b_has_json=row["b_has_json"],
+                b_is_code_block=row["b_is_code_block"],
             ),
             axis=1,
         ).apply(pd.Series)

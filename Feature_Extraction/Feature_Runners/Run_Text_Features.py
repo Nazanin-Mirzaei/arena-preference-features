@@ -23,7 +23,10 @@ from Feature_Extraction.Text_Features.Repetition import compute_repetition_densi
 from Feature_Extraction.Text_Features.Sentence_Length_Stats import compute_sentence_length_std
 from Feature_Extraction.Text_Features.Sentence_Paragraph_Stats import compute_sentence_per_paragraph_std
 from Feature_Extraction.Text_Features.Table_Detection import detect_tables, count_tables
+from Feature_Extraction.Text_Features.List_Detection import detect_list, count_list_items
+from Feature_Extraction.Text_Features.Json_Detection import has_json
 from Feature_Extraction.Text_Features.Writing_Style_Features import extract_writing_style_features
+from Feature_Extraction.Text_Features.Format_Request_Detection import extract_format_request_features
 
 
 # -------------------------------------------------
@@ -69,6 +72,11 @@ def extract_all_Text_Features(text: str) -> dict:
     features["has_table"] = detect_tables(text)
     features["table_count"] = count_tables(text)
 
+    features["has_list"] = detect_list(text)
+    features["list_item_count"] = count_list_items(text)
+
+    features["has_json"] = has_json(text)
+
     safe_update(features, extract_paragraph_features(text))
     safe_update(features, extract_paragraph_statistics(text))
     safe_update(features, extract_sentence_length_features(text))
@@ -102,6 +110,15 @@ def run_all_Text_Features(df: pd.DataFrame) -> pd.DataFrame:
         .add_prefix("prompt_")
     )
 
+    # User prompt format-request features (prompt-only: infers what
+    # output format was asked for, not applicable to responses)
+    prompt_format_request_features = (
+        df["user_prompt"]
+        .apply(extract_format_request_features)
+        .apply(pd.Series)
+        .add_prefix("prompt_")
+    )
+
     # Response A features
     response_a_features = (
         df["response_a"]
@@ -122,6 +139,7 @@ def run_all_Text_Features(df: pd.DataFrame) -> pd.DataFrame:
         [
             df,
             prompt_features,
+            prompt_format_request_features,
             response_a_features,
             response_b_features
         ],
