@@ -14,6 +14,7 @@ from Feature_Extraction.Comparison_Features.Refusal_Comparison import extract_re
 from Feature_Extraction.Comparison_Features.Near_Empty_Comparison import extract_near_empty_comparison
 from Feature_Extraction.Comparison_Features.Format_Compliance_Comparison import extract_format_compliance_comparison
 from Feature_Extraction.Comparison_Features.Length_Compliance_Comparison import extract_length_compliance_comparison
+from Feature_Extraction.Comparison_Features.Truncation_Comparison import extract_truncation_comparison
 
 
 # -------------------------------------------------
@@ -224,6 +225,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
                 requests_detailed=row["prompt_requests_detailed"],
                 a_word_count=row["a_word_count"],
                 b_word_count=row["b_word_count"],
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    truncation_columns = ["a_is_truncated", "b_is_truncated"]
+
+    if all(col in df.columns for col in truncation_columns):
+        comparison_features = df.apply(
+            lambda row: extract_truncation_comparison(
+                row["a_is_truncated"], row["b_is_truncated"]
             ),
             axis=1,
         ).apply(pd.Series)
