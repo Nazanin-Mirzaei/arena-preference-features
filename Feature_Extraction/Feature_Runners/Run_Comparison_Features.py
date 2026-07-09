@@ -27,6 +27,7 @@ from Feature_Extraction.Comparison_Features.Interaction_Score_Comparison import 
 from Feature_Extraction.Comparison_Features.Is_Detailed_Comparison import extract_is_detailed_comparison
 from Feature_Extraction.Comparison_Features.Has_Step_By_Step_Comparison import extract_has_step_by_step_comparison
 from Feature_Extraction.Comparison_Features.Is_Natural_Text_Comparison import extract_is_natural_text_comparison
+from Feature_Extraction.Comparison_Features.Has_Conclusion_Comparison import extract_has_conclusion_comparison
 
 
 # -------------------------------------------------
@@ -393,6 +394,18 @@ def run_all_comparison_features(df: pd.DataFrame) -> pd.DataFrame:
         comparison_features = df.apply(
             lambda row: extract_is_natural_text_comparison(
                 row["a_is_natural_text"], row["b_is_natural_text"]
+            ),
+            axis=1,
+        ).apply(pd.Series)
+
+        df = pd.concat([df, comparison_features], axis=1)
+
+    has_conclusion_columns = ["a_has_conclusion", "b_has_conclusion"]
+
+    if all(col in df.columns for col in has_conclusion_columns):
+        comparison_features = df.apply(
+            lambda row: extract_has_conclusion_comparison(
+                row["a_has_conclusion"], row["b_has_conclusion"]
             ),
             axis=1,
         ).apply(pd.Series)
