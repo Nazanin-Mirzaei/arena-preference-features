@@ -125,16 +125,16 @@ The feature extraction system is organized into four hierarchical layers:
 ```
 
 ┌──────────────────────────────────────────────────────────────────┐
-│                        Feature_Runners                            │
-│      Batch processing, column-gating, feature merging             │
-├───────────────────┬───────────────────┬───────────────────────────┤
-│ Metadata_Features  │   Text_Features   │   Comparison_Features     │
-│ (conv_metadata,    │ (prompt + response│ (a_* vs b_* outputs of    │
-│  category_tag)     │  texts)           │  the two stages at left)  │
-├───────────────────┴───────────────────┴───────────────────────────┤
-│                   Individual Feature Extractors                   │
-│           Stateless functions operating on single input           │
-└─────────────────────────────────────────────────────────────────────┘
+│                        Feature_Runners                           │
+│      Batch processing, column-gating, feature merging            │
+├───────────────────┬───────────────────┬──────────────────────────┤
+│ Metadata_Features │   Text_Features   │   Comparison_Features    │
+│ (conv_metadata,   │ (prompt + response│ (a_* vs b_* outputs of   │
+│  category_tag)    │  texts)           │  the two stages at left) │
+├───────────────────┴───────────────────┴──────────────────────────┤
+│                   Individual Feature Extractors                  │
+│           Stateless functions operating on single input          │
+└──────────────────────────────────────────────────────────────────┘
 
 ```
 
