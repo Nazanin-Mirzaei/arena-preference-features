@@ -51,6 +51,11 @@ def run_all_metadata_features(df: pd.DataFrame) -> pd.DataFrame:
         feat_df = parsed.apply(func).apply(pd.Series)
         feature_frames.append(feat_df)
 
+    # Drop raw columns that collide with derived feature names
+    # (e.g. dataset-provided "turns" vs. extract_conversation_dynamics' "turns")
+    if "turns" in df.columns:
+        df = df.drop(columns=["turns"])
+
     # Merge all feature outputs
     df = pd.concat([df] + feature_frames, axis=1)
 
