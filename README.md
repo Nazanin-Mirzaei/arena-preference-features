@@ -1,4 +1,4 @@
-# Arena Human Preference 140K — Feature Engineering & Annotation Toolkit
+# Arena Human Preference 140K — Feature Engineering
 
 This repository accompanies the **LM Arena 140K** dataset: a pairwise, human-preference-labeled corpus of large language model (LLM) conversations in the LMArena format (`user_prompt`, `response_a`, `response_b`, `winner`, `conv_metadata`, `category_tag`). It does not redistribute a scoring model or a single monolithic script — it is a **modular data-processing pipeline** that turns the raw conversation triples into an interpretable, ML-ready feature table, plus an independent LLM-based correctness annotator, built to support downstream work on pairwise preference modeling, reward modeling, and LLM behavioral analysis.
 
