@@ -217,6 +217,14 @@ To additionally reproduce the LLM-judge correctness annotations, see the CLI usa
 - `LLM_as_a_Judge` correctness annotations are produced by a third-party LLM API and inherit that model's own error modes; `correctness_applicable=false` intentionally leaves subjective/creative prompts unscored rather than forcing a spurious correctness verdict.
 - None of the modules in this repository re-derive or validate the `winner` preference label itself; it is treated as ground truth inherited from the source dataset.
 
-## License & Citation
 
-Add license and citation details here prior to publishing the accompanying dataset release.
+## License
+
+The code in this repository is released under the MIT License; see
+[LICENSE](LICENSE) for the full text.
+
+## Related dataset
+
+This pipeline produces the features published in the
+[Arena Human Preference 140K, Feature-Engineered Subset](https://huggingface.co/datasets/Nazanin-Mirzaei/arena-human-preference-140k-features)
+dataset on Hugging Face.
