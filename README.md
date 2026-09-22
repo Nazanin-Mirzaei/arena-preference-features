@@ -225,6 +225,5 @@ The code in this repository is released under the MIT License; see
 
 ## Related dataset
 
-This pipeline produces the features published in the
-[Arena_Human_Preference_90K_features_verified]([https://huggingface.co/datasets/Nazanin-Mirzaei/arena-human-preference-140k-features](https://huggingface.co/datasets/Gholamali/Arena_Human_Preference_90K_features_verified))
-dataset on Hugging Face.
+dataset on Hugging Face.This pipeline produces the features published in the [Arena_Human_Preference_90K_features_verified](https://huggingface.co/datasets/Gholamali/Arena_Human_Preference_90K_features_verified) dataset on Hugging Face.
+
